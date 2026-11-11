@@ -24,7 +24,7 @@ Every PR's last task points here. Run all of them on the PR branch:
   - Verify: `Invoke-Pester` on `Get-YnabPlanList.tests.ps1` and `Module.tests.ps1` passes.
 - [x] **1.5** Tick task 6.2 in `docs/specs/foundation/tasks.md`, which was done after the foundation merge. Delete `Private/.gitkeep`, which is no longer needed now that `Private/` holds functions (added in review).
   - Verify: the file shows 6.2 checked; `Private/.gitkeep` is gone and the build still stages `Private/`.
-- [ ] **1.6** Standard checks S1–S5. Before merge, push a final commit setting ADR-0004 to `Accepted`.
+- [x] **1.6** Standard checks S1–S5. Before merge, push a final commit setting ADR-0004 to `Accepted`.
   - Verify: as in S1–S5; ADR-0004 shows `Accepted` on `main` after merge.
 
 ## PR 2: `Get-YnabPlan`
