@@ -57,6 +57,7 @@ It changes the objects `Invoke-RestMethod` produced in place; nothing else holds
 
 - `Get-YnabPlanList` and `Get-YnabPlan` add a `plan_id` property, equal to `id`, to each plan object.
 - Every plan-scoped function declares `-PlanId` with `ValueFromPipelineByPropertyName` and `[Alias('plan_id')]`, default `'last-used'` (AC-2, AC-3).
+- `-PlanId` is validated with `[ValidatePattern('^(last-used|default|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$', ErrorMessage = ...)]`, case-insensitive, so a malformed ID fails at binding without spending a request (AC-32). The pattern is repeated in each function because attribute arguments must be literals. `[System.Guid]` was rejected: it cannot accept `last-used` or `default`, and it also accepts forms such as braces or no dashes that YNAB's paths don't use. (Added during PR 2 review.)
 - Binding on `plan_id` rather than `id` matters. Accounts, categories, payees and transactions also have an `id`, so an `id` alias would make `Get-YnabAccount | Get-YnabTransaction` send an account ID as the plan ID. Only plan objects carry `plan_id`.
 - Each function does its work in `Process`, so piping two plans sends one request per plan.
 
@@ -87,6 +88,7 @@ All seven are in `Public/`, with `-PlanId` as described above (except `Get-YnabP
 Parameter details:
 
 - The ID parameters (`-AccountId`, `-CategoryId`, `-PayeeId`, `-TransactionId`) are `Mandatory` in their set, `[ValidateNotNullOrEmpty()]` `[System.String]`, and are not pipeline-bound.
+- Every ID placed in a path, `-PlanId` included, is escaped with `[System.Uri]::EscapeDataString`, so a value containing `/` or `?` cannot change which endpoint is called. (Added while implementing PR 2.)
 - `-Month` is `[System.String]`, validated as `current` or a value that converts with `-as [System.DateTime]`, which parses with the invariant culture. A date is sent as the first day of its month, `yyyy-MM-01` (AC-18).
 - `-SinceDate` / `-UntilDate` are `[System.DateTime]`, sent as `since_date` / `until_date` in `yyyy-MM-dd` (AC-20, AC-29). If both are given and `-SinceDate` is later than `-UntilDate`, the function raises `YnabInvalidDateRange` (`InvalidArgument`) before sending anything.
 - `-Type` is `[ValidateSet('Uncategorized', 'Unapproved')]`, sent lower-cased as `type` (AC-21).
