@@ -35,6 +35,7 @@ IDs are stable: new criteria are added at the end of their group rather than ren
 - **AC-24** Parameters that cannot be used together SHALL be in separate parameter sets, so PowerShell rejects the combination at binding time, before the function runs or sends a request. This covers listing versus fetching one item by ID, `Get-YnabMonth`'s list versus a single month, and `Get-YnabTransaction`'s `-AccountId` versus `-CategoryId` and its filters versus a single transaction ID.
 - **AC-25** Output objects SHALL keep YNAB's property names and casing (for example `category_group_name`, `cleared_balance`), with amounts converted in place.
 - **AC-26** For each amount, the output SHALL keep YNAB's `<name>_formatted` display string and SHALL NOT include the `<name>_currency` floating-point copy.
+- **AC-32** WHEN `-PlanId` is not a UUID in YNAB's dashed form, `last-used` or `default`, THE SYSTEM SHALL reject it at parameter binding, before sending a request, with a message naming the accepted forms. (Added during PR 2 review.)
 - **AC-28** *Moved to step 3.* An `-IncludeDeleted` switch was planned here. YNAB's OpenAPI spec says deleted items of every type "will only be included in delta requests", and this step sends none (AC-8), so the switch would have no effect yet. Step 3 adds it with delta requests.
 
 ### `Get-YnabPlanList`

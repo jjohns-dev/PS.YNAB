@@ -57,6 +57,7 @@ It changes the objects `Invoke-RestMethod` produced in place; nothing else holds
 
 - `Get-YnabPlanList` and `Get-YnabPlan` add a `plan_id` property, equal to `id`, to each plan object.
 - Every plan-scoped function declares `-PlanId` with `ValueFromPipelineByPropertyName` and `[Alias('plan_id')]`, default `'last-used'` (AC-2, AC-3).
+- `-PlanId` is validated with `[ValidatePattern('^(last-used|default|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$', ErrorMessage = ...)]`, case-insensitive, so a malformed ID fails at binding without spending a request (AC-32). The pattern is repeated in each function because attribute arguments must be literals. `[System.Guid]` was rejected: it cannot accept `last-used` or `default`, and it also accepts forms such as braces or no dashes that YNAB's paths don't use. (Added during PR 2 review.)
 - Binding on `plan_id` rather than `id` matters. Accounts, categories, payees and transactions also have an `id`, so an `id` alias would make `Get-YnabAccount | Get-YnabTransaction` send an account ID as the plan ID. Only plan objects carry `plan_id`.
 - Each function does its work in `Process`, so piping two plans sends one request per plan.
 

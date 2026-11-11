@@ -12,8 +12,8 @@ function Get-YnabPlan {
         The response holds the plan's entire history, so it grows with the plan and can be large. To list plans and
         their IDs, use Get-YnabPlanList. Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
-        Plan ID, or last-used (the default), or default when default plan selection is enabled. Binds from the
-        plan_id property of piped plan objects.
+        Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
+        value is rejected before a request is sent. Binds from the plan_id property of piped plan objects.
     .INPUTS
         System.Management.Automation.PSCustomObject. Plan objects from Get-YnabPlanList, bound by plan_id.
     .OUTPUTS
@@ -31,9 +31,9 @@ function Get-YnabPlan {
     [CmdletBinding()]
     [OutputType([System.Management.Automation.PSCustomObject])]
     Param(
-        [Parameter(ValueFromPipelineByPropertyName, HelpMessage = 'Plan ID, last-used or default')]
+        [Parameter(ValueFromPipelineByPropertyName, HelpMessage = 'Plan ID (UUID), last-used or default')]
         [Alias('plan_id')]
-        [ValidateNotNullOrEmpty()]
+        [ValidatePattern('^(last-used|default|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})$', ErrorMessage = 'Plan ID [{0}] must be a UUID such as 0b5e3c1a-7d2f-4e6b-9a8c-1f2e3d4c5b6a, last-used or default.')]
         [System.String] $PlanId = 'last-used'
     )
     Begin {

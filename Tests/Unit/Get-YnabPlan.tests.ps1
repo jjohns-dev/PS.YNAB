@@ -10,10 +10,14 @@ BeforeDiscovery {
 
 Describe -Name 'Get-YnabPlan' -Fixture {
     BeforeAll {
+        $script:planOne = '11111111-1111-4111-8111-111111111111'
+        $script:planTwo = '22222222-2222-4222-8222-222222222222'
+        $script:planThree = '33333333-3333-4333-8333-333333333333'
+
         # SHAPED LIKE GET /plans/{plan_id} data: NESTED LISTS USE YNAB'S BASE SCHEMAS, MOSTLY WITHOUT *_currency
         $script:planJson = '{
             "plan": {
-                "id": "p-1",
+                "id": "11111111-1111-4111-8111-111111111111",
                 "name": "Household",
                 "currency_format": { "iso_code": "USD", "decimal_digits": 2 },
                 "accounts": [
@@ -47,44 +51,78 @@ Describe -Name 'Get-YnabPlan' -Fixture {
             Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/last-used' } -Times 1 -Exactly -Scope It
         }
         It -Name 'uses -PlanId when given' -Test {
-            Get-YnabPlan -PlanId 'p-9' | Out-Null
-            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/p-9' } -Times 1 -Exactly -Scope It
+            Get-YnabPlan -PlanId $script:planTwo | Out-Null
+            $expectedPath = '/plans/{0}' -f $script:planTwo
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq $expectedPath } -Times 1 -Exactly -Scope It
         }
         It -Name 'uses a default set in $PSDefaultParameterValues' -Test {
-            $PSDefaultParameterValues['Get-YnabPlan:PlanId'] = 'p-7'
+            $PSDefaultParameterValues['Get-YnabPlan:PlanId'] = $script:planThree
             try {
                 Get-YnabPlan | Out-Null
             }
             finally {
                 $PSDefaultParameterValues.Remove('Get-YnabPlan:PlanId')
             }
-            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/p-7' } -Times 1 -Exactly -Scope It
+            $expectedPath = '/plans/{0}' -f $script:planThree
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq $expectedPath } -Times 1 -Exactly -Scope It
         }
-        It -Name 'escapes the plan ID in the path' -Test {
-            Get-YnabPlan -PlanId 'a/b' | Out-Null
-            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/a%2Fb' } -Times 1 -Exactly -Scope It
+    }
+    Context -Name 'parameter validation' -Fixture {
+        It -Name 'accepts <Value>' -ForEach @(
+            @{ Value = 'last-used' }
+            @{ Value = 'default' }
+            @{ Value = '11111111-1111-4111-8111-111111111111' }
+            @{ Value = 'ABCDEF12-3456-4789-8ABC-DEF123456789' }
+        ) -Test {
+            { Get-YnabPlan -PlanId $Value } | Should -Not -Throw
         }
-        It -Name 'rejects an empty plan ID' -Test {
-            { Get-YnabPlan -PlanId '' } | Should -Throw
+        It -Name 'rejects <Description> before sending a request' -ForEach @(
+            @{ Description = 'an empty string'; Value = '' }
+            @{ Description = 'a misspelled keyword'; Value = 'last_used' }
+            @{ Description = 'a plan name'; Value = 'Household' }
+            @{ Description = 'a UUID without dashes'; Value = '11111111111141118111111111111111' }
+            @{ Description = 'a UUID in braces'; Value = '{11111111-1111-4111-8111-111111111111}' }
+            @{ Description = 'a value that would change the path'; Value = '11111111-1111-4111-8111-111111111111/accounts' }
+        ) -Test {
+            $err = $null
+            try {
+                Get-YnabPlan -PlanId $Value
+            }
+            catch {
+                $err = $PSItem
+            }
+            $err.FullyQualifiedErrorId | Should -BeLike 'ParameterArgumentValidationError*'
             Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 0 -Exactly -Scope It
+        }
+        It -Name 'names the accepted forms in the error message' -Test {
+            $err = $null
+            try {
+                Get-YnabPlan -PlanId 'Household'
+            }
+            catch {
+                $err = $PSItem
+            }
+            $err.ToString() | Should -BeLike '*Plan ID `[Household`] must be a UUID*last-used or default*'
         }
     }
     Context -Name 'pipeline input' -Fixture {
         It -Name 'takes the plan ID from piped plan objects, one request each' -Test {
             $plans = @(
-                [PSCustomObject] @{ id = 'p-1'; plan_id = 'p-1'; name = 'Household' }
-                [PSCustomObject] @{ id = 'p-2'; plan_id = 'p-2'; name = 'Side business' }
+                [PSCustomObject] @{ id = $script:planOne; plan_id = $script:planOne; name = 'Household' }
+                [PSCustomObject] @{ id = $script:planTwo; plan_id = $script:planTwo; name = 'Side business' }
             )
             $plans | Get-YnabPlan | Out-Null
-            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/p-1' } -Times 1 -Exactly -Scope It
-            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq '/plans/p-2' } -Times 1 -Exactly -Scope It
+            $firstPath = '/plans/{0}' -f $script:planOne
+            $secondPath = '/plans/{0}' -f $script:planTwo
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq $firstPath } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -eq $secondPath } -Times 1 -Exactly -Scope It
         }
     }
     Context -Name 'output' -Fixture {
         It -Name 'returns one plan object with plan_id equal to id' -Test {
             $result = @(Get-YnabPlan)
             $result | Should -HaveCount 1
-            $result[0].plan_id | Should -Be 'p-1'
+            $result[0].plan_id | Should -Be $script:planOne
             $result[0].name | Should -Be 'Household'
             $result[0].PSObject.Properties.Name | Should -Not -Contain 'server_knowledge'
         }
@@ -122,7 +160,7 @@ Describe -Name 'Get-YnabPlan' -Fixture {
             }
             $err = $null
             try {
-                Get-YnabPlan -PlanId 'missing'
+                Get-YnabPlan -PlanId $script:planTwo
             }
             catch {
                 $err = $PSItem
