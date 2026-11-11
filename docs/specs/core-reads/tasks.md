@@ -36,7 +36,7 @@ Every PR's last task points here. Run all of them on the PR branch:
   - deleted items dropped from nested lists
   - (AC-1 to AC-5, AC-30, AC-31)
   - Verify: `Invoke-Pester` on `Get-YnabPlan.tests.ps1` passes.
-- [ ] **2.2** Standard checks S1–S5.
+- [x] **2.2** Standard checks S1–S5.
 
 ## PR 3: `Get-YnabAccount`
 
