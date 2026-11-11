@@ -29,7 +29,7 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 2: `Get-YnabPlan`
 
-- [ ] **2.1** Add `Public/Get-YnabPlan.ps1` and its tests, and export it. Tests cover:
+- [x] **2.1** Add `Public/Get-YnabPlan.ps1` and its tests, and export it. Tests cover:
   - one `GET /plans/{plan_id}` call, defaulting to `last-used`, and taking `-PlanId` from `$PSDefaultParameterValues` and from a piped plan
   - one plan object with `plan_id` added
   - amounts converted inside every nested list: accounts, categories, months and their categories, transactions, split transactions, scheduled transactions

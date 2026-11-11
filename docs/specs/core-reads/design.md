@@ -87,6 +87,7 @@ All seven are in `Public/`, with `-PlanId` as described above (except `Get-YnabP
 Parameter details:
 
 - The ID parameters (`-AccountId`, `-CategoryId`, `-PayeeId`, `-TransactionId`) are `Mandatory` in their set, `[ValidateNotNullOrEmpty()]` `[System.String]`, and are not pipeline-bound.
+- Every ID placed in a path, `-PlanId` included, is escaped with `[System.Uri]::EscapeDataString`, so a value containing `/` or `?` cannot change which endpoint is called. (Added while implementing PR 2.)
 - `-Month` is `[System.String]`, validated as `current` or a value that converts with `-as [System.DateTime]`, which parses with the invariant culture. A date is sent as the first day of its month, `yyyy-MM-01` (AC-18).
 - `-SinceDate` / `-UntilDate` are `[System.DateTime]`, sent as `since_date` / `until_date` in `yyyy-MM-dd` (AC-20, AC-29). If both are given and `-SinceDate` is later than `-UntilDate`, the function raises `YnabInvalidDateRange` (`InvalidArgument`) before sending anything.
 - `-Type` is `[ValidateSet('Uncategorized', 'Unapproved')]`, sent lower-cased as `type` (AC-21).
