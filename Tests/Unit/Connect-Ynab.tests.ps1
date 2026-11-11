@@ -1,3 +1,6 @@
+[System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('PSAvoidUsingConvertToSecureStringWithPlainText', '', Justification = 'Fake tokens built for test fixtures; no real secret is involved.')]
+param()
+
 BeforeDiscovery {
     if (-not $env:BHProjectName) {
         $env:BHProjectName = 'PS.YNAB'
