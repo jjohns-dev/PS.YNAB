@@ -91,7 +91,7 @@ Error record, raised with `Write-Error ... -ErrorAction Stop` (AC-13, AC-14, AC-
 
 ### Milliunit helpers (private)
 
-- `ConvertFrom-Milliunit`: `[OutputType([System.Decimal])]`, takes `-Milliunit` as `[System.Int64]` from the pipeline, and emits `[System.Decimal] $Milliunit / 1000` (AC-19, AC-22).
+- `ConvertFrom-Milliunit`: `[OutputType([System.Decimal])]`, takes `-Milliunit` as `[System.Decimal]` from the pipeline. If it is not a whole number, it raises `Write-Error -Message ('Value [{0}] is not a whole number of milliunits' -f $Milliunit) -ErrorId 'YnabMilliunitNotWhole' -Category InvalidArgument -ErrorAction Stop` (AC-27). Otherwise it emits `$Milliunit / 1000` (AC-19, AC-22). The parameter is `System.Decimal`, not `System.Int64`, because PowerShell would round `12.34` to `12` while binding an `Int64` parameter, before the body could reject it.
 - `ConvertTo-Milliunit`: `[OutputType([System.Int64])]`, takes `-Amount` as `[System.Decimal]` from the pipeline, and computes `$milliunit = $Amount * 1000`. If that is not a whole number, it raises `Write-Error -Message ('Amount [{0}] has more than three decimal places' -f $Amount) -ErrorId 'YnabAmountPrecision' -Category InvalidArgument -ErrorAction Stop` (AC-21). Otherwise it emits `[System.Int64] $milliunit` (AC-20).
 - `System.Decimal` throughout, so values with up to three decimal places round-trip exactly (AC-23).
 

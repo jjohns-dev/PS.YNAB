@@ -51,6 +51,7 @@ Every planned `PS.YNAB` function needs to authenticate to the YNAB API, send a r
 - **AC-21** WHEN given an amount with more than three decimal places, `ConvertTo-Milliunit` SHALL throw a terminating error rather than round.
 - **AC-22** Both functions SHALL accept pipeline input.
 - **AC-23** Round-tripping any value with at most three decimal places SHALL return the original value exactly.
+- **AC-27** WHEN given a value that is not a whole number of milliunits, `ConvertFrom-Milliunit` SHALL throw a terminating error rather than round. (Added during PR review; numbered last so existing IDs stay stable.)
 
 ### Module
 

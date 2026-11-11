@@ -4,11 +4,12 @@ function ConvertFrom-Milliunit {
         Converts a YNAB milliunit amount to a decimal currency amount.
     .DESCRIPTION
         The YNAB API represents every amount as an integer number of milliunits, where 1000 milliunits equal one
-        currency unit. This function divides by 1000 and returns a System.Decimal, so the result is exact.
+        currency unit. This function divides by 1000 and returns a System.Decimal, so the result is exact. A value
+        that is not a whole number of milliunits raises an error instead of being rounded.
     .PARAMETER Milliunit
-        Amount in milliunits, as returned by the YNAB API.
+        Amount in milliunits, as returned by the YNAB API. Must be a whole number.
     .INPUTS
-        System.Int64.
+        System.Decimal.
     .OUTPUTS
         System.Decimal.
     .EXAMPLE
@@ -21,13 +22,23 @@ function ConvertFrom-Milliunit {
     [CmdletBinding()]
     [OutputType([System.Decimal])]
     Param(
-        [Parameter(Mandatory, ValueFromPipeline, HelpMessage = 'Amount in milliunits')]
-        [System.Int64] $Milliunit
+        [Parameter(Mandatory, ValueFromPipeline, HelpMessage = 'Amount in milliunits, as a whole number')]
+        [System.Decimal] $Milliunit
     )
     Begin {
         Write-Verbose -Message ('Starting {0}' -f $MyInvocation.MyCommand)
     }
     Process {
-        [System.Decimal] $Milliunit / 1000
+        # TYPED AS DECIMAL, NOT INT64: BINDING TO INT64 WOULD ROUND 12.34 TO 12 BEFORE THIS CHECK COULD SEE IT
+        if ($Milliunit -ne [System.Decimal]::Truncate($Milliunit)) {
+            $errorParams = @{
+                Message      = 'Value [{0}] is not a whole number of milliunits' -f $Milliunit
+                ErrorId      = 'YnabMilliunitNotWhole'
+                Category     = 'InvalidArgument'
+                TargetObject = $Milliunit
+            }
+            Write-Error @errorParams -ErrorAction Stop
+        }
+        $Milliunit / 1000
     }
 }

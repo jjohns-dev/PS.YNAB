@@ -8,6 +8,8 @@ Implements [design.md](design.md). Work in order; each task leaves the module im
   - Verify: `Invoke-Pester -Path Tests/Unit/ConvertFrom-Milliunit.tests.ps1` passes.
 - [x] **1.2** Add `Private/ConvertTo-Milliunit.ps1` and `Tests/Unit/ConvertTo-Milliunit.tests.ps1`. The tests cover whole and fractional amounts, negatives, pipeline input, `System.Int64` output, the `YnabAmountPrecision` error for `1.2345`, and round trips through both helpers (AC-20, AC-21, AC-22, AC-23).
   - Verify: `Invoke-Pester -Path Tests/Unit/ConvertTo-Milliunit.tests.ps1` passes.
+- [x] **1.3** Harden `ConvertFrom-Milliunit` to reject values that are not whole milliunits instead of rounding them (AC-27; added during PR review).
+  - Verify: `Invoke-Pester -Path Tests/Unit/ConvertFrom-Milliunit.tests.ps1` passes, including `12.34` and piped `12.34` raising `YnabMilliunitNotWhole`.
 
 ## 2. Request layer
 

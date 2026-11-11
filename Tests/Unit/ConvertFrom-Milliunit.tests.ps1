@@ -36,4 +36,31 @@ Describe -Name 'ConvertFrom-Milliunit' -Fixture {
             }
         }
     }
+    Context -Name 'error handling' -Fixture {
+        It -Name 'rejects <Description> instead of rounding it' -ForEach @(
+            @{ Description = 'a fractional value passed by name'; Piped = $false; Value = 12.34 }
+            @{ Description = 'a fractional value from the pipeline'; Piped = $true; Value = 12.34 }
+            @{ Description = 'a value just above a whole number'; Piped = $false; Value = '1000.001' }
+            @{ Description = 'a negative fractional value'; Piped = $false; Value = -0.5 }
+        ) -Test {
+            InModuleScope -ModuleName $env:BHProjectName -Parameters $_ -ScriptBlock {
+                $err = $null
+                try {
+                    if ($Piped) {
+                        $Value | ConvertFrom-Milliunit -ErrorAction Stop
+                    }
+                    else {
+                        ConvertFrom-Milliunit -Milliunit $Value -ErrorAction Stop
+                    }
+                }
+                catch {
+                    $err = $PSItem
+                }
+                $err | Should -Not -BeNullOrEmpty
+                $err.FullyQualifiedErrorId | Should -BeLike 'YnabMilliunitNotWhole,*'
+                $err.CategoryInfo.Category | Should -Be 'InvalidArgument'
+                $err.ToString() | Should -BeLike '*not a whole number of milliunits'
+            }
+        }
+    }
 }
