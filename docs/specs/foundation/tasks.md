@@ -74,7 +74,7 @@ These go in one change because the module test requires the exports to match `Pu
 
 ## 6. Ship
 
-- [ ] **6.1** Commit with a `refs #4` body, push `4-foundation`, and open a PR that closes #4.
+- [x] **6.1** Commit with a `refs #4` body, push `4-foundation`, and open a PR that closes #4.
   - Verify: all checks pass, including the required `validate / validate (ubuntu-latest)`.
 - [ ] **6.2** After merge, tick step 1 in issue #1's plan.
   - Verify: issue #1 shows step 1 checked with links to #4 and the PR.
