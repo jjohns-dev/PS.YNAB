@@ -46,7 +46,7 @@ Clean   { Remove-Variable -Name 'candidate', 'previous' -Force -ErrorAction Igno
 
 - The `catch` earns its place by **cleaning up** (disposing the rejected token). It re-raises with `-ErrorRecord $PSItem`, which keeps the original record, as the standards prefer for module functions.
 - Nothing is written to the success stream (AC-1).
-- `-Token` is `Mandatory`, so `Connect-Ynab` run with no arguments prompts for the token. That PowerShell masks the prompt input for a `SecureString` parameter is **unverified**; it will be checked by hand during implementation.
+- `-Token` is `Mandatory`, so `Connect-Ynab` run with no arguments prompts for the token. PowerShell masks the prompt input for a `SecureString` parameter (verified by hand in task 5.5: the prompt showed `Token:` with `*` characters).
 
 ### `Disconnect-Ynab`
 

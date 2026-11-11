@@ -63,10 +63,12 @@ These go in one change because the module test requires the exports to match `Pu
 - [x] **5.4** Run a live check with a deliberately invalid token: `Connect-Ynab -Token <bad> -Verbose -Debug`.
   - Verify: a 401 error with the reconnect hint, and the token text appears nowhere in the console output (design risk 1).
   - Result: found the token in `Invoke-RestMethod`'s debug output; fixed with `-Debug:$false` and re-verified live. See design risk 1 for the unit-test gap.
-- [ ] **5.5** Check by hand that the prompt is masked: run `Connect-Ynab` with no arguments in an interactive shell.
+- [x] **5.5** Check by hand that the prompt is masked: run `Connect-Ynab` with no arguments in an interactive shell.
   - Verify: typed characters are masked, which resolves the unverified claim in the design. **You run this**, because it needs an interactive console.
-- [ ] **5.6** Run a live smoke test with your real token: `Connect-Ynab -Token (Get-Secret YnabToken)`, then `Disconnect-Ynab`.
+  - Result: PowerShell prompted `Token:` and showed the input as `*` characters.
+- [x] **5.6** Run a live smoke test with your real token: `Connect-Ynab -Token (Get-Secret YnabToken)`, then `Disconnect-Ynab`.
   - Verify: connecting succeeds with no output; disconnecting succeeds. **You run this**, so I never read your secret.
+  - Result: both commands completed with no output.
 
 ## 6. Ship
 
