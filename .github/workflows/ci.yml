@@ -1,0 +1,24 @@
+name: ci
+run-name: ci
+
+on:
+  pull_request:
+    branches: ["*"]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@v2
+    with:
+      os-matrix: '["ubuntu-latest"]'
+      # No min-tests floor yet: the suite is a scaffold and grows with each
+      # function. Derive one from the executed count once it stabilizes; see
+      # pwsh-module-ci docs/test-integrity.md.
+    permissions:
+      contents: read
+      checks: write
