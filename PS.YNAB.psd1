@@ -41,6 +41,7 @@
     FunctionsToExport    = @(
         'Connect-Ynab'
         'Disconnect-Ynab'
+        'Get-YnabPlanList'
     )
 
     # Cmdlets to export from this module
