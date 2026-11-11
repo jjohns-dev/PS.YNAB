@@ -38,7 +38,10 @@
     RequiredModules      = @()
 
     # Functions to export from this module. Populated per-PR as functions land.
-    FunctionsToExport    = @()
+    FunctionsToExport    = @(
+        'Connect-Ynab'
+        'Disconnect-Ynab'
+    )
 
     # Cmdlets to export from this module
     CmdletsToExport      = @()
