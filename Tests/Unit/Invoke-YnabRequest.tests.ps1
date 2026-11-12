@@ -99,6 +99,30 @@ Describe -Name 'Invoke-YnabRequest' -Fixture {
             Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter $filter -Times 1 -Exactly -Scope It
         }
     }
+    Context -Name 'query string' -Fixture {
+        BeforeAll {
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith {
+                [PSCustomObject] @{ data = [PSCustomObject] @{ ok = $true } }
+            }
+        }
+        It -Name 'appends <Case>' -ForEach @(
+            @{ Case = 'entries in sorted key order'; Query = @{ until_date = '2026-11-30'; since_date = '2026-11-01'; type = 'unapproved' }; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions?since_date=2026-11-01&type=unapproved&until_date=2026-11-30' }
+            @{ Case = 'URI-escaped keys and values'; Query = @{ 'a b' = 'x&y=z/?' }; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions?a%20b=x%26y%3Dz%2F%3F' }
+            @{ Case = 'only entries whose value is not null'; Query = @{ since_date = '2026-11-01'; type = $null }; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions?since_date=2026-11-01' }
+            @{ Case = 'no question mark when every value is null'; Query = @{ type = $null }; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions' }
+            @{ Case = 'no question mark for an empty query'; Query = @{}; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions' }
+            @{ Case = 'nothing when no query is given'; Query = 'unbound'; Expected = 'https://api.ynab.com/v1/plans/last-used/transactions' }
+        ) -Test {
+            InModuleScope -ModuleName $env:BHProjectName -Parameters @{ T = $script:token; Q = $Query } -ScriptBlock {
+                $requestParams = @{ Path = '/plans/last-used/transactions'; Token = $T }
+                if ($Q -isnot [System.String]) {
+                    $requestParams['Query'] = $Q
+                }
+                Invoke-YnabRequest @requestParams
+            } | Out-Null
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -eq $Expected } -Times 1 -Exactly -Scope It
+        }
+    }
     Context -Name 'parameter validation' -Fixture {
         It -Name 'rejects a path that does not begin with /' -Test {
             {

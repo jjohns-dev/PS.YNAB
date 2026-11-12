@@ -47,6 +47,7 @@
         'Get-YnabPayee'
         'Get-YnabPlan'
         'Get-YnabPlanList'
+        'Get-YnabTransaction'
     )
 
     # Cmdlets to export from this module
