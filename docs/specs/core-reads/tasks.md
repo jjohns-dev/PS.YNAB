@@ -101,7 +101,7 @@ Every PR's last task points here. Run all of them on the PR branch:
   - Result (2026-11-12): no `*_currency` properties in any function's output. The only whole-number properties were `age_of_money`, `goal_months_to_budget`, `goal_percentage_complete` and `currency_format.decimal_digits`, none of them amounts. The amount list needed no change.
 - [x] **7.4** *Optional, if you have a loan account:* compare one converted `debt_interest_rates` value with the rate shown in YNAB's app.
   - Verify: the values match, or the help text records the interest-rate unit as unverified.
-  - Result: not compared against the app; `Get-YnabAccount`'s help records the `debt_interest_rates` unit as unverified.
+  - Result (2026-11-12): the check snippet found no loan accounts in the maintainer's plan, so there was nothing to compare. The `debt_interest_rates` unit remains unverified, as `Get-YnabAccount`'s help and ADR-0004 state; verify it when a plan with a loan account is available.
 - [x] **7.5** Standard checks S1–S5, with the PR body using `closes #6`.
 
 ## After the last merge
