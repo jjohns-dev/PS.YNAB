@@ -51,7 +51,7 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 4: `Get-YnabCategory`
 
-- [ ] **4.1** Add `Public/Get-YnabCategory.ps1` and its tests, and export it. Tests cover:
+- [x] **4.1** Add `Public/Get-YnabCategory.ps1` and its tests, and export it. Tests cover:
   - `_list` flattens groups into one object per category, each keeping `category_group_id` and `category_group_name`
   - categories of a deleted group are dropped
   - hidden and internal categories are kept
@@ -59,7 +59,7 @@ Every PR's last task points here. Run all of them on the PR branch:
   - budgeted, activity, balance and goal amounts converted
   - (AC-1 to AC-5, AC-13, AC-14, AC-24, AC-27)
   - Verify: `Invoke-Pester` on `Get-YnabCategory.tests.ps1` passes.
-- [ ] **4.2** Standard checks S1–S5.
+- [x] **4.2** Standard checks S1–S5.
 
 ## PR 5: `Get-YnabPayee`
 
