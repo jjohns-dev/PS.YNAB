@@ -47,7 +47,7 @@ Every PR's last task points here. Run all of them on the PR branch:
   - the plan pipeline binds, and a piped account object does not bind `-PlanId`
   - (AC-1 to AC-5, AC-11, AC-12, AC-24)
   - Verify: `Invoke-Pester` on `Get-YnabAccount.tests.ps1` passes.
-- [ ] **3.2** Standard checks S1–S5.
+- [x] **3.2** Standard checks S1–S5.
 
 ## PR 4: `Get-YnabCategory`
 
