@@ -38,3 +38,20 @@
 ```
 
 `Staging/` and `Artifacts/` are gitignored. Task names, properties and the expected layout are in the harness's [consumer guide](https://github.com/jjohns-dev/pwsh-module-ci/blob/main/docs/consumer-guide.md).
+
+## Releasing
+
+A release is cut by pushing a `vX.Y.Z` tag. The [release workflow](.github/workflows/release.yml) then builds and tests the tagged commit and publishes a GitHub release with notes generated from the merged PRs' labels and the module zip attached. Nothing is published to the PowerShell Gallery. On pull requests the same workflow runs as a dry run that skips only the publishing step.
+
+1. **Label every PR** with one of the labels in [`.github/release.yml`](.github/release.yml), such as `enhancement`, `bug` or `documentation`, so the release notes group it. Unlabeled PRs fall under "Other Changes"; `ignore-for-release` leaves a PR out.
+2. **Set the version first.** `ModuleVersion` in [`PS.YNAB.psd1`](PS.YNAB.psd1) must equal the tag's version. Nothing checks this, and the zip is named from the manifest, so a mismatch ships a release and a zip with different versions. Bump it in a PR and merge that before tagging: major for breaking changes, minor for new functions, patch for fixes.
+3. **Tag the merged commit on `main`** with a signed, annotated tag and push it:
+
+   ```powershell
+   git tag -s v0.2.0 -m 'v0.2.0' <commit-sha>
+   git push origin v0.2.0
+   ```
+
+4. **Watch the `release` run** for the tag and confirm the release page lists the notes and the `PS.YNAB-vX.Y.Z.zip` asset.
+
+Never move, delete or reuse a version tag. If a release is wrong, fix forward with a new patch version.
