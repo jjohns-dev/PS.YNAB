@@ -1,5 +1,11 @@
 # PS.YNAB
 
+[![CI](https://github.com/jjohns-dev/PS.YNAB/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/jjohns-dev/PS.YNAB/actions/workflows/ci.yml)
+[![PSScriptAnalyzer](https://github.com/jjohns-dev/PS.YNAB/actions/workflows/pssa-sarif.yml/badge.svg?branch=main)](https://github.com/jjohns-dev/PS.YNAB/actions/workflows/pssa-sarif.yml)
+[![Release](https://img.shields.io/github/v/release/jjohns-dev/PS.YNAB)](https://github.com/jjohns-dev/PS.YNAB/releases/latest)
+[![License](https://img.shields.io/github/license/jjohns-dev/PS.YNAB)](LICENSE)
+[![PowerShell](https://img.shields.io/badge/PowerShell-7.4%2B-5391FE?logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
+
 A PowerShell module wrapping the [YNAB API](https://api.ynab.com). Its first consumer is a daily spending-anomaly alerter.
 
 > **Status:** early development. Functions land one PR at a time, following the plan in [#1](https://github.com/jjohns-dev/PS.YNAB/issues/1).
