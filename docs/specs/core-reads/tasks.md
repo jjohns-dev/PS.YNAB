@@ -69,7 +69,7 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 6: `Get-YnabMonth`
 
-- [ ] **6.1** Add `Public/Get-YnabMonth.ps1` and its tests, and export it. Tests cover:
+- [x] **6.1** Add `Public/Get-YnabMonth.ps1` and its tests, and export it. Tests cover:
   - `_list` calls `/months`
   - `-Month current` calls `/months/current`
   - `-Month '2026-11-15'` calls `/months/2026-11-01`

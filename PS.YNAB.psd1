@@ -43,6 +43,7 @@
         'Disconnect-Ynab'
         'Get-YnabAccount'
         'Get-YnabCategory'
+        'Get-YnabMonth'
         'Get-YnabPayee'
         'Get-YnabPlan'
         'Get-YnabPlanList'
