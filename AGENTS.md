@@ -45,7 +45,7 @@ The build is the shared harness in [`pwsh-module-ci`](https://github.com/jjohns-
 - Runtime module dependencies go in the manifest's `RequiredModules`. The harness installs each at its latest release unless the entry carries `RequiredVersion`.
 - There is no `Build/harness.psd1`. Add one only for a setting the consumer guide lists.
 - CI runs on `ubuntu-latest` only. The required check is `validate / validate (ubuntu-latest)`; adding a runner means adding its check to the `protect` ruleset.
-- No `min-tests` floor is set yet. Set one once the suite stabilizes.
+- The `validate` job sets a `min-tests` floor in `.github/workflows/ci.yml`. Derive it as `executed - min(floor(executed * 0.05), 10)`, where `executed` is the JUnit root's `tests` minus `disabled`, read from the run's `Pester Results` artifact and never predicted (pwsh-module-ci `docs/test-integrity.md`, ADR-0004). Every PR that adds tests raises the floor, and a PR that deletes tests re-derives it. Record the executed count and the arithmetic in the trailing comment.
 
 ## Working conventions
 

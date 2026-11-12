@@ -16,9 +16,11 @@ jobs:
     uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@v2
     with:
       os-matrix: '["ubuntu-latest"]'
-      # No min-tests floor yet: the suite is a scaffold and grows with each
-      # function. Derive one from the executed count once it stabilizes; see
-      # pwsh-module-ci docs/test-integrity.md.
+      # The floor is executed - min(floor(executed * 0.05), 10), read from the
+      # run's JUnit artifact (pwsh-module-ci docs/test-integrity.md, ADR-0004).
+      # Re-derive it in any PR that adds or removes tests: raise it when tests
+      # are added, and lower it only when tests are deliberately deleted.
+      min-tests: 182 # 191 executed at 083acbd (0 disabled); margin min(floor(191 * 0.05), 10) = 9; 191 - 9 = 182
     permissions:
       contents: read
       checks: write
