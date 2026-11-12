@@ -42,6 +42,7 @@
         'Connect-Ynab'
         'Disconnect-Ynab'
         'Get-YnabAccount'
+        'Get-YnabCategory'
         'Get-YnabPlan'
         'Get-YnabPlanList'
     )
