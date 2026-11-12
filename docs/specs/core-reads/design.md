@@ -89,7 +89,8 @@ Parameter details:
 
 - The ID parameters (`-AccountId`, `-CategoryId`, `-PayeeId`, `-TransactionId`) are `Mandatory` in their set, `[ValidateNotNullOrEmpty()]` `[System.String]`, and are not pipeline-bound.
 - Every ID placed in a path, `-PlanId` included, is escaped with `[System.Uri]::EscapeDataString`, so a value containing `/` or `?` cannot change which endpoint is called. (Added while implementing PR 2.)
-- `-Month` is `[System.String]`, validated as `current` or a value that converts with `-as [System.DateTime]`, which parses with the invariant culture. A date is sent as the first day of its month, `yyyy-MM-01` (AC-18).
+- `-Month` is `[System.String]`, validated as `current` or a value that `[System.DateTime]::TryParse` accepts with the invariant culture. A date is sent as the first day of its month, `yyyy-MM-01`, parsed and formatted with the invariant culture (AC-18).
+  - **Correction (PR 6):** this bullet originally said `-as [System.DateTime]` parses with the invariant culture. It does not: tested under `en-GB`, `-as` read `11/12/2026` as 11 December, and under `th-TH` it read `2026-11-15` as Buddhist year 2026 (Gregorian 1483). Casting and `TryParse` with `InvariantCulture` gave the right date under en-US, en-GB and th-TH, and a `DateTime` passed to the string parameter binds as invariant text.
 - `-SinceDate` / `-UntilDate` are `[System.DateTime]`, sent as `since_date` / `until_date` in `yyyy-MM-dd` (AC-20, AC-29). If both are given and `-SinceDate` is later than `-UntilDate`, the function raises `YnabInvalidDateRange` (`InvalidArgument`) before sending anything.
 - `-Type` is `[ValidateSet('Uncategorized', 'Unapproved')]`, sent lower-cased as `type` (AC-21).
 - The four transaction sets make `-AccountId` with `-CategoryId`, and `-TransactionId` with any filter, binding errors (AC-22, AC-24).
