@@ -17,6 +17,8 @@ function Invoke-YnabRequest {
         API path beginning with /, relative to https://api.ynab.com/v1.
     .PARAMETER Body
         Request body. Serialized to JSON and sent as application/json.
+    .PARAMETER Query
+        Query parameters. Each entry with a non-null value is appended as key=value, URI-escaped, in sorted key order.
     .PARAMETER Token
         Token to use instead of the session token. Used by Connect-Ynab to validate a token before storing it.
     .INPUTS
@@ -43,6 +45,9 @@ function Invoke-YnabRequest {
 
         [Parameter(HelpMessage = 'Request body, serialized to JSON')]
         [System.Object] $Body,
+
+        [Parameter(HelpMessage = 'Query parameters, appended URI-escaped in sorted key order')]
+        [System.Collections.IDictionary] $Query,
 
         [Parameter(HelpMessage = 'Token to use instead of the session token')]
         [System.Security.SecureString] $Token
@@ -82,6 +87,17 @@ function Invoke-YnabRequest {
         if ($PSBoundParameters.ContainsKey('Body')) {
             $restParams['Body'] = ConvertTo-Json -InputObject $Body -Depth 10 -Compress
             $restParams['ContentType'] = 'application/json'
+        }
+        if ($Query) {
+            # SORTED KEYS KEEP THE URI PREDICTABLE; NULL VALUES ARE LEFT OUT
+            $queryPairs = foreach ($key in ($Query.Keys | Sort-Object)) {
+                if ($null -ne $Query[$key]) {
+                    '{0}={1}' -f [System.Uri]::EscapeDataString([System.String] $key), [System.Uri]::EscapeDataString([System.String] $Query[$key])
+                }
+            }
+            if ($queryPairs) {
+                $restParams['Uri'] = '{0}?{1}' -f $restParams['Uri'], (@($queryPairs) -join '&')
+            }
         }
         Write-Verbose -Message ('{0} {1}' -f $Method, $restParams['Uri'])
 

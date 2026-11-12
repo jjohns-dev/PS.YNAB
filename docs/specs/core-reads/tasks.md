@@ -81,14 +81,14 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 7: `Get-YnabTransaction`
 
-- [ ] **7.1** Add `-Query` to `Private/Invoke-YnabRequest.ps1`, with tests:
+- [x] **7.1** Add `-Query` to `Private/Invoke-YnabRequest.ps1`, with tests:
   - the query string is built with sorted keys
   - values are URI-escaped
   - `$null` values are skipped
   - no `?` is added for an empty query
   - existing tests still pass
   - Verify: `Invoke-Pester` on `Invoke-YnabRequest.tests.ps1` passes.
-- [ ] **7.2** Add `Public/Get-YnabTransaction.ps1` and its tests, and export it. Tests cover:
+- [x] **7.2** Add `Public/Get-YnabTransaction.ps1` and its tests, and export it. Tests cover:
   - the endpoint each set calls
   - `since_date`, `until_date` and `type` in the query, formatted `yyyy-MM-dd` and lower-cased
   - `YnabInvalidDateRange` with no request sent
