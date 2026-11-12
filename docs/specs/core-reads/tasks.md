@@ -40,7 +40,7 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 3: `Get-YnabAccount`
 
-- [ ] **3.1** Add `Public/Get-YnabAccount.ps1` and its tests, and export it. Tests cover:
+- [x] **3.1** Add `Public/Get-YnabAccount.ps1` and its tests, and export it. Tests cover:
   - `_list` calls `/accounts`; `_id` calls `/accounts/{account_id}`
   - balances and loan maps converted
   - `-AccountId` with an empty string is rejected
