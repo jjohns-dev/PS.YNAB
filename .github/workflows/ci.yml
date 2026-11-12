@@ -20,7 +20,7 @@ jobs:
       # run's JUnit artifact (pwsh-module-ci docs/test-integrity.md, ADR-0004).
       # Re-derive it in any PR that adds or removes tests: raise it when tests
       # are added, and lower it only when tests are deliberately deleted.
-      min-tests: 182 # 191 executed at 083acbd (0 disabled); margin min(floor(191 * 0.05), 10) = 9; 191 - 9 = 182
+      min-tests: 9999 # THROWAWAY: impossible floor to prove the verify step fails and still uploads results
     permissions:
       contents: read
       checks: write
