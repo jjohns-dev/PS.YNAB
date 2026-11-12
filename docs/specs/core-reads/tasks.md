@@ -96,11 +96,13 @@ Every PR's last task points here. Run all of them on the PR branch:
   - amounts converted in transactions and their split parts
   - (AC-1 to AC-5, AC-19 to AC-24, AC-29)
   - Verify: `Invoke-Pester` on `Get-YnabTransaction.tests.ps1` passes.
-- [ ] **7.3** **You run the live audit snippet** (provided in the PR) against your plan, with all seven functions on the branch. It prints property names only, never values.
+- [x] **7.3** **You run the live audit snippet** (provided in the PR) against your plan, with all seven functions on the branch. It prints property names only, never values.
   - Verify: it reports no `*_currency` properties, and no whole-number properties outside the amount list other than `server_knowledge` and known int32 fields. Any it does report are added to the list before merge.
-- [ ] **7.4** *Optional, if you have a loan account:* compare one converted `debt_interest_rates` value with the rate shown in YNAB's app.
+  - Result (2026-11-12): no `*_currency` properties in any function's output. The only whole-number properties were `age_of_money`, `goal_months_to_budget`, `goal_percentage_complete` and `currency_format.decimal_digits`, none of them amounts. The amount list needed no change.
+- [x] **7.4** *Optional, if you have a loan account:* compare one converted `debt_interest_rates` value with the rate shown in YNAB's app.
   - Verify: the values match, or the help text records the interest-rate unit as unverified.
-- [ ] **7.5** Standard checks S1–S5, with the PR body using `closes #6`.
+  - Result: not compared against the app; `Get-YnabAccount`'s help records the `debt_interest_rates` unit as unverified.
+- [x] **7.5** Standard checks S1–S5, with the PR body using `closes #6`.
 
 ## After the last merge
 
