@@ -63,7 +63,7 @@ Every PR's last task points here. Run all of them on the PR branch:
 
 ## PR 5: `Get-YnabPayee`
 
-- [ ] **5.1** Add `Public/Get-YnabPayee.ps1` and its tests, and export it. Tests cover: `_list` calls `/payees`; `_id` calls `/payees/{payee_id}`; one object per payee (AC-1 to AC-5, AC-15, AC-16, AC-24).
+- [x] **5.1** Add `Public/Get-YnabPayee.ps1` and its tests, and export it. Tests cover: `_list` calls `/payees`; `_id` calls `/payees/{payee_id}`; one object per payee (AC-1 to AC-5, AC-15, AC-16, AC-24).
   - Verify: `Invoke-Pester` on `Get-YnabPayee.tests.ps1` passes.
 - [ ] **5.2** Standard checks S1–S5.
 
