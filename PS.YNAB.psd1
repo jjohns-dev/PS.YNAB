@@ -41,6 +41,7 @@
     FunctionsToExport    = @(
         'Connect-Ynab'
         'Disconnect-Ynab'
+        'Get-YnabAccount'
         'Get-YnabPlan'
         'Get-YnabPlanList'
     )
