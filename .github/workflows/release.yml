@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   release:
-    uses: jjohns-dev/pwsh-module-ci/.github/workflows/release.yml@v2
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/release.yml@v2.1.0
     with:
       artifact-name: ${{ github.event_name == 'pull_request' && 'PS.YNAB-dry-run' || format('PS.YNAB-{0}', github.ref_name) }}
       dry-run: ${{ github.event_name == 'pull_request' }}
