@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   validate:
-    uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@v2.1.0
+    uses: jjohns-dev/pwsh-module-ci/.github/workflows/ci.yml@v2
     with:
       os-matrix: '["ubuntu-latest"]'
       # The floor is executed - min(floor(executed * 0.05), 10), read from the
