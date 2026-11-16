@@ -14,7 +14,7 @@
 ## New Function Checklist
 
 - Place the file under `Public/` (exported) or `Private/` (internal only), named `Verb-YnabNoun.ps1` to match the function, using an [approved verb](https://learn.microsoft.com/powershell/scripting/developer/cmdlet/approved-verbs-for-windows-powershell-commands).
-- Follow the cross-cutting rules in [AGENTS.md](AGENTS.md#cross-cutting-rules-every-function-honors): HTTP only through `Invoke-YnabRequest`, amounts converted from milliunits, writes guarded by `SupportsShouldProcess`.
+- Follow the [design rules](docs/design.md#design-rules).
 - Include comment-based help (`.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, `.INPUTS`, `.OUTPUTS`, `.EXAMPLE`, `.NOTES`). The `.NOTES` block must include a `Status:` line:
 
   | Value | Meaning |

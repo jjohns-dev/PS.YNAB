@@ -2,20 +2,9 @@
 
 Context for an AI agent (or a human working alongside one) working in this repo.
 
-**Read first:** [`docs/adr/`](docs/adr/) for architecturally significant decisions, and the tracking issue for the planned function set.
+**Read first:** [`docs/design.md`](docs/design.md) for the module's purpose, the design rules every function follows, the auth model and the YNAB API facts it relies on. It also maps where each kind of fact lives: decisions in [`docs/adr/`](docs/adr/), per-step specs in [`docs/specs/`](docs/specs/), and the plan and open questions in tracking issue [#1](https://github.com/jjohns-dev/PS.YNAB/issues/1).
 
-## Purpose
-
-`PS.YNAB` wraps the [YNAB API](https://api.ynab.com) (`https://api.ynab.com/v1`). Its first consumer is a daily spending-anomaly alerter that runs unattended with a read-only OAuth credential.
-
-## Cross-cutting rules every function honors
-
-1. **One HTTP caller.** The private `Invoke-YnabRequest` is the only function that calls `Invoke-RestMethod`. It owns the auth header, base URI, error unwrapping, 429 backoff and OAuth refresh.
-2. **Amounts are converted at the boundary.** The API uses milliunits (1000 = 1.00). Callers never see raw milliunit values.
-3. **Respect the rate limit.** 200 requests per hour per token, on a rolling window. Cache lookups per session and use delta requests (`server_knowledge` → `last_knowledge_of_server`).
-4. **Writes are guarded.** Every write function uses `[CmdletBinding(SupportsShouldProcess, ConfirmImpact = 'High')]` and honors `-WhatIf` / `-Confirm`.
-5. **Never commit secrets.** Tokens, client secrets and refresh tokens live in SecretManagement, never in the repo or in test fixtures.
-6. **`Verb-Ynab<Noun>` naming.** Exported functions use the `Ynab` noun prefix and approved verbs.
+Keep each fact in its authoritative place and link to it from elsewhere; don't restate it.
 
 ## Layout
 
