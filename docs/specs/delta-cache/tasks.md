@@ -22,7 +22,7 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
   - Verify: `Invoke-Pester` on `Clear-YnabCache.tests.ps1` passes.
 - [x] **1.6** Clear the cache in `Connect-Ynab` after a token is accepted and in `Disconnect-Ynab`, with tests that a rejected token leaves the cache alone (AC-13).
   - Verify: `Invoke-Pester` on `Connect-Ynab.tests.ps1` and `Disconnect-Ynab.tests.ps1` passes.
-- [ ] **1.7** Standard checks S1 to S6. Before merge, push a final commit setting ADR-0005 to `Accepted`.
+- [x] **1.7** Standard checks S1 to S6. Before merge, push a final commit setting ADR-0005 to `Accepted`.
   - Verify: as in S1 to S6; ADR-0005 shows `Accepted` on `main` after merge.
 
 ## PR 2: use the cache

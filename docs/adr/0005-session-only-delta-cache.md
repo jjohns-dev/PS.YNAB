@@ -4,7 +4,7 @@ Amends: ADR-0004
 
 ## Status
 
-Proposed — 2026-11-15
+Accepted — 2026-11-15
 
 ## Context
 
