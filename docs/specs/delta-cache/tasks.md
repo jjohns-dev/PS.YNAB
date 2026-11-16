@@ -40,7 +40,7 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
     - `-Type Uncategorized`, a test transaction categorized: `EditSeen` `True`, **`CachedEqFull` `False`**: `CountCached` 110 against `CountFull` 109. The delta reported the transaction as changed, not deleted, so it stayed in the cached list. Led to task 2.5.
 - [x] **2.5** Stop caching `Get-YnabTransaction` in every form, record why as ADR-0006 amending ADR-0005, and update its help, design rule 6 and this spec (added after the live check).
   - Verify: `Get-YnabTransaction` tests show no form of the call caches, even with a plan ID; ADR-0006 is accepted before merge.
-- [ ] **2.4** Standard checks S1 to S6, with the PR body using `closes #21`.
+- [x] **2.4** Standard checks S1 to S6, with the PR body using `closes #21`.
 
 ## After the last merge
 
