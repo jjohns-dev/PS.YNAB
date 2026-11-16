@@ -31,8 +31,9 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
   - Verify: each test file clears the cache in `BeforeEach` and passes, and has one new test showing a second call with a plan ID sends `last_knowledge_of_server` while single-item calls never do.
 - [x] **2.2** Rewrite rule 6 in `docs/design.md` to describe the cache and link ADR-0005.
   - Verify: the rule no longer says caching is planned, and its links resolve.
-- [ ] **2.3** **You run the live check snippet** (provided in the PR) with your plan's ID. It prints only `True`/`False` per function for "cached result equals full result" and "second call sent knowledge", the item count each delta response carried, and the time each cached call took. No values, names or IDs.
+- [x] **2.3** **You run the live check snippet** (provided in the PR) with your plan's ID. It prints only `True`/`False` per function for "cached result equals full result" and "second call sent knowledge", the item count each delta response carried, and the time each cached call took. No values, names or IDs.
   - Verify: every comparison is `True`. Any `False` is fixed before merge. The counts settle the two unverified delta shapes in the requirements, and the timings settle the design's copy-cost risk; both results are recorded here.
+  - Result (2026-11-16): `CachedEqFull` and `SentKnowledge` were `True` for all six functions. Copy cost is not a concern: a cached `Get-YnabPlan` took 2069 ms against 2489 ms for a full download, and every other function was under 600 ms. Every delta carried 0 items because nothing changed in YNAB between calls, so the two delta shapes in the requirements remain unverified live; the merge handles either shape, and `Merge-YnabDelta`'s tests cover both.
 - [ ] **2.4** Standard checks S1 to S6, with the PR body using `closes #21`.
 
 ## After the last merge
