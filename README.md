@@ -52,7 +52,7 @@ A misspelled key is ignored silently, so check it with `$PSDefaultParameterValue
 
 ## Development
 
-The build runs from the shared harness in [`pwsh-module-ci`](https://github.com/jjohns-dev/pwsh-module-ci); see [CONTRIBUTING.md](CONTRIBUTING.md#running-the-build-locally).
+The module's design rules, auth model and API facts are in [docs/design.md](docs/design.md). The build runs from the shared harness in [`pwsh-module-ci`](https://github.com/jjohns-dev/pwsh-module-ci); see [CONTRIBUTING.md](CONTRIBUTING.md#running-the-build-locally).
 
 ## License
 
