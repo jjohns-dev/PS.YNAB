@@ -108,7 +108,8 @@ function Merge-YnabDelta {
                     }
                 )
             }
-            elseif ($deltaValue -is [System.Management.Automation.PSCustomObject] -and $cachedProperty.Value -is [System.Management.Automation.PSCustomObject]) {
+            elseif ($deltaValue -is [System.Management.Automation.PSCustomObject] -and
+                $cachedProperty.Value -is [System.Management.Automation.PSCustomObject]) {
                 Merge-YnabDelta -Cached $cachedProperty.Value -Delta $deltaValue
             }
             else {

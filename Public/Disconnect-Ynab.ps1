@@ -4,8 +4,8 @@ function Disconnect-Ynab {
         Ends the YNAB session and clears the session token.
     .DESCRIPTION
         Disposes the token held by Connect-Ynab, clears the session cache of list results, and clears the session,
-        so later PS.YNAB commands fail until Connect-Ynab is run again. Running it with no session does nothing. The token itself stays valid in YNAB; to
-        revoke it, use Developer Settings in YNAB.
+        so later PS.YNAB commands fail until Connect-Ynab is run again. Running it with no session does nothing.
+        The token itself stays valid in YNAB; to revoke it, use Developer Settings in YNAB.
     .INPUTS
         None.
     .OUTPUTS

@@ -34,7 +34,9 @@ function ConvertTo-YnabQueryString {
         }
         $queryPairs = foreach ($key in ($Query.Keys | Sort-Object)) {
             if ($null -ne $Query[$key]) {
-                '{0}={1}' -f [System.Uri]::EscapeDataString([System.String] $key), [System.Uri]::EscapeDataString([System.String] $Query[$key])
+                $escapedKey = [System.Uri]::EscapeDataString([System.String] $key)
+                $escapedValue = [System.Uri]::EscapeDataString([System.String] $Query[$key])
+                '{0}={1}' -f $escapedKey, $escapedValue
             }
         }
         @($queryPairs) -join '&'

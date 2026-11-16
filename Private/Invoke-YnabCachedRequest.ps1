@@ -57,7 +57,9 @@ function Invoke-YnabCachedRequest {
 
         # KEYWORD PLANS CAN CHANGE MEANING MID-SESSION AND LIST RESPONSES DON'T NAME THE PLAN, SO THEY ARE NOT CACHED
         if ($PlanId -notmatch $ynab_uuid_pattern) {
-            Write-Verbose -Message ('Not cached: -PlanId is [{0}]. Set a plan ID, for example with $PSDefaultParameterValues[''*-Ynab*:PlanId''], to cache this call.' -f $PlanId)
+            $bypassMessage = 'Not cached: -PlanId is [{0}]. Set a plan ID, for example with ' +
+                '$PSDefaultParameterValues[''*-Ynab*:PlanId''], to cache this call.'
+            Write-Verbose -Message ($bypassMessage -f $PlanId)
             Invoke-YnabRequest @requestParams
             return
         }
@@ -97,7 +99,8 @@ function Invoke-YnabCachedRequest {
                 Write-Error -ErrorRecord $PSItem -ErrorAction Stop
             }
             $entry.ServerKnowledge = $delta.server_knowledge
-            Write-Verbose -Message ('Merged changes into {0}; server knowledge {1}.' -f $cacheKey, $entry.ServerKnowledge)
+            $mergedMessage = 'Merged changes into {0}; server knowledge {1}.' -f $cacheKey, $entry.ServerKnowledge
+            Write-Verbose -Message $mergedMessage
         }
 
         # A DEEP COPY: CALLERS CHANGE WHAT THEY GET (ConvertFrom-YnabData DOES), SO THE CACHE MUST NOT BE SHARED
