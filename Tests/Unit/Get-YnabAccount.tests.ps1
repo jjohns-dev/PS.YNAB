@@ -30,6 +30,7 @@ Describe -Name 'Get-YnabAccount' -Fixture {
         $script:singleJson = '{ "account": { "id": "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", "name": "Checking", "balance": 1234560, "balance_currency": 1234.56, "deleted": false } }'
     }
     BeforeEach {
+        Clear-YnabCache
         $listResponse = $script:listJson
         $singleResponse = $script:singleJson
         Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -MockWith {
@@ -38,6 +39,28 @@ Describe -Name 'Get-YnabAccount' -Fixture {
         Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -like '*/accounts/*' } -MockWith {
             $singleResponse | ConvertFrom-Json
         }.GetNewClosure()
+    }
+    AfterAll {
+        Clear-YnabCache
+    }
+    Context -Name 'session cache' -Fixture {
+        BeforeAll {
+            $script:cachePlan = '44444444-4444-4444-8444-444444444444'
+        }
+        It -Name 'asks only for changes on a second call with a plan ID' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabAccount -PlanId $script:cachePlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 2 -Exactly -Scope It
+        }
+        It -Name 'does not cache a call with last-used' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabAccount | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 0 -Exactly -Scope It
+        }
+        It -Name 'never caches a single-item call' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabAccount -AccountId 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa' -PlanId $script:cachePlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 0 -Exactly -Scope It
+            @(InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Keys }) | Should -HaveCount 0
+        }
     }
     Context -Name 'listing accounts' -Fixture {
         It -Name 'sends one request to the last-used plan''s accounts by default' -Test {

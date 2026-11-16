@@ -16,6 +16,11 @@ function Get-YnabTransaction {
         With -CategoryId, YNAB returns "hybrid" transactions: each part of a split transaction is its own row, with a
         type of transaction or subtransaction and a parent_transaction_id, instead of a subtransactions list.
 
+        Unlike the other list functions, results are never cached: every transaction list is filtered (YNAB applies a
+        one-year window even without -SinceDate), and YNAB's delta responses do not report a transaction that stops
+        matching a filter, for example one that is categorized or moved to another account. Each call downloads the
+        full list.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -125,6 +130,7 @@ function Get-YnabTransaction {
             $query['type'] = $Type.ToLowerInvariant()
         }
 
+        # NOT CACHED: DELTAS DON'T REPORT A TRANSACTION LEAVING A FILTER, SO A MERGED LIST COULD KEEP IT (ADR-0006)
         $response = Invoke-YnabRequest -Path $transactionsPath -Query $query
         foreach ($transaction in $response.transactions) {
             ConvertFrom-YnabData -InputObject $transaction

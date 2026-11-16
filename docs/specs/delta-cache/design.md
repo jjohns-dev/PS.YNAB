@@ -62,7 +62,7 @@ Parameters: `-PlanId`, `-Path`, `-Query` (as `Invoke-YnabRequest`). Returns the 
 |---|---|
 | `Get-YnabPlan` | Calls `Invoke-YnabCachedRequest` |
 | `Get-YnabAccount`, `Get-YnabCategory`, `Get-YnabPayee`, `Get-YnabMonth` | The list branch calls `Invoke-YnabCachedRequest`; the single-item branch is unchanged (AC-1, AC-2) |
-| `Get-YnabTransaction` | The `_plan`, `_account` and `_category` sets call `Invoke-YnabCachedRequest`; `_id` is unchanged |
+| `Get-YnabTransaction` | ~~The `_plan`, `_account` and `_category` sets call `Invoke-YnabCachedRequest`~~. Not cached in any form, per [ADR-0006](../../adr/0006-never-cache-filtered-lists.md) (changed during PR 2); its help explains why |
 | `Connect-Ynab` | Clears the cache after a token is accepted (AC-13) |
 | `Disconnect-Ynab` | Clears the cache (AC-13) |
 | `Get-YnabPlanList` | Unchanged (AC-2) |

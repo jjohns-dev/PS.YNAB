@@ -24,6 +24,7 @@ IDs are stable: new criteria are added at the end rather than renumbering.
 ### Which calls are cached
 
 - **AC-1** THE SYSTEM SHALL cache the results of these calls, whose endpoints accept `last_knowledge_of_server` per YNAB's OpenAPI spec: `Get-YnabPlan`; `Get-YnabAccount`, `Get-YnabCategory`, `Get-YnabPayee` and `Get-YnabMonth` without an ID or month; and `Get-YnabTransaction` without `-TransactionId`.
+  - **Changed during PR 2 (2026-11-16):** `Get-YnabTransaction` is not cached after all. The live check showed a delta does not report a transaction that stops matching a filter, so the merged list kept it; see [ADR-0006](../../adr/0006-never-cache-filtered-lists.md).
 - **AC-2** Calls for a single item (`-AccountId`, `-CategoryId`, `-PayeeId`, `-Month`, `-TransactionId`) and `Get-YnabPlanList` SHALL behave as before, with no cache.
 
 ### Cache behavior

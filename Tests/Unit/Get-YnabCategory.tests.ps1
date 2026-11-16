@@ -34,6 +34,7 @@ Describe -Name 'Get-YnabCategory' -Fixture {
         $script:singleJson = '{ "category": { "id": "c0000001-0000-4000-8000-000000000001", "category_group_id": "g-everyday", "category_group_name": "Everyday", "name": "Food", "budgeted": 400000, "budgeted_currency": 400.0, "activity": -125500, "balance": 274500, "deleted": false } }'
     }
     BeforeEach {
+        Clear-YnabCache
         $listResponse = $script:listJson
         $singleResponse = $script:singleJson
         Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -MockWith {
@@ -42,6 +43,28 @@ Describe -Name 'Get-YnabCategory' -Fixture {
         Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Path -like '*/categories/*' } -MockWith {
             $singleResponse | ConvertFrom-Json
         }.GetNewClosure()
+    }
+    AfterAll {
+        Clear-YnabCache
+    }
+    Context -Name 'session cache' -Fixture {
+        BeforeAll {
+            $script:cachePlan = '44444444-4444-4444-8444-444444444444'
+        }
+        It -Name 'asks only for changes on a second call with a plan ID' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabCategory -PlanId $script:cachePlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 2 -Exactly -Scope It
+        }
+        It -Name 'does not cache a call with last-used' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabCategory | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 0 -Exactly -Scope It
+        }
+        It -Name 'never caches a single-item call' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabCategory -CategoryId 'c0000001-0000-4000-8000-000000000001' -PlanId $script:cachePlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 0 -Exactly -Scope It
+            @(InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Keys }) | Should -HaveCount 0
+        }
     }
     Context -Name 'listing categories' -Fixture {
         It -Name 'sends one request to the last-used plan''s categories by default' -Test {

@@ -9,6 +9,10 @@ function Get-YnabPlan {
         and deleted items are left out. The object also carries plan_id, equal to id, so it can be piped into other
         PS.YNAB commands.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         The response holds the plan's entire history, so it grows with the plan and can be large. To list plans and
         their IDs, use Get-YnabPlanList. Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
@@ -40,7 +44,8 @@ function Get-YnabPlan {
         Write-Verbose -Message ('Starting {0}' -f $MyInvocation.MyCommand)
     }
     Process {
-        $response = Invoke-YnabRequest -Path ('/plans/{0}' -f [System.Uri]::EscapeDataString($PlanId))
+        $planPath = '/plans/{0}' -f [System.Uri]::EscapeDataString($PlanId)
+        $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $planPath
         $plan = ConvertFrom-YnabData -InputObject $response.plan
         if ($plan) {
             # plan_id LETS THE PLAN BIND TO -PlanId FROM THE PIPELINE (ADR-0004)

@@ -6,6 +6,13 @@ Amends: ADR-0004
 
 Accepted — 2026-11-15
 
+Amended by [ADR-0006](0006-never-cache-filtered-lists.md) — 2026-11-16. Two statements below are now inaccurate and are left in place:
+
+- The Decision bullet reading "We will cache list results in module memory…". Filtered lists are not cached; ADR-0006 excludes `Get-YnabTransaction` because deltas do not report an item that stops matching a filter.
+- The Consequences bullet saying repeated reads download only changes, "which matters most for `Get-YnabPlan` and long transaction lists". Only `Get-YnabPlan` caches transaction history now.
+
+Everything else in this record still stands.
+
 ## Context
 
 - YNAB supports delta requests: a response carries `server_knowledge`, and sending it back as `last_knowledge_of_server` returns only what changed. A delta request is still one request, so it shrinks responses but does not reduce use of the 200-requests-per-hour limit.
