@@ -14,6 +14,10 @@ function Get-YnabCategory {
         as "Inflow: Ready to Assign" are included; filter on the hidden and internal properties. Deleted categories,
         and the categories of deleted groups, are left out.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -59,7 +63,7 @@ function Get-YnabCategory {
             ConvertFrom-YnabData -InputObject $response.category
         }
         else {
-            $response = Invoke-YnabRequest -Path $categoriesPath
+            $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $categoriesPath
             foreach ($group in $response.category_groups) {
                 # A DELETED GROUP COMES BACK EMPTY; A KEPT GROUP HAS ITS CATEGORIES CONVERTED AND FILTERED
                 $keptGroup = ConvertFrom-YnabData -InputObject $group

@@ -11,6 +11,10 @@ function Get-YnabAccount {
         The unit of the debt_interest_rates map is not documented by YNAB; it is converted like the other loan maps,
         so treat converted rates as unverified.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -56,7 +60,7 @@ function Get-YnabAccount {
             ConvertFrom-YnabData -InputObject $response.account
         }
         else {
-            $response = Invoke-YnabRequest -Path $accountsPath
+            $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $accountsPath
             foreach ($account in $response.accounts) {
                 ConvertFrom-YnabData -InputObject $account
             }

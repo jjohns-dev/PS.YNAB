@@ -27,9 +27,9 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
 
 ## PR 2: use the cache
 
-- [ ] **2.1** Switch the list paths of `Get-YnabPlan`, `Get-YnabAccount`, `Get-YnabCategory`, `Get-YnabPayee`, `Get-YnabMonth` and `Get-YnabTransaction` (`_plan`, `_account`, `_category`) to `Invoke-YnabCachedRequest`, and add the caching paragraph to each one's help (AC-1, AC-2, AC-15).
+- [x] **2.1** Switch the list paths of `Get-YnabPlan`, `Get-YnabAccount`, `Get-YnabCategory`, `Get-YnabPayee`, `Get-YnabMonth` and `Get-YnabTransaction` (`_plan`, `_account`, `_category`) to `Invoke-YnabCachedRequest`, and add the caching paragraph to each one's help (AC-1, AC-2, AC-15).
   - Verify: each test file clears the cache in `BeforeEach` and passes, and has one new test showing a second call with a plan ID sends `last_knowledge_of_server` while single-item calls never do.
-- [ ] **2.2** Rewrite rule 6 in `docs/design.md` to describe the cache and link ADR-0005.
+- [x] **2.2** Rewrite rule 6 in `docs/design.md` to describe the cache and link ADR-0005.
   - Verify: the rule no longer says caching is planned, and its links resolve.
 - [ ] **2.3** **You run the live check snippet** (provided in the PR) with your plan's ID. It prints only `True`/`False` per function for "cached result equals full result" and "second call sent knowledge", the item count each delta response carried, and the time each cached call took. No values, names or IDs.
   - Verify: every comparison is `True`. Any `False` is fixed before merge. The counts settle the two unverified delta shapes in the requirements, and the timings settle the design's copy-cost risk; both results are recorded here.

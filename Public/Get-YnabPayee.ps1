@@ -8,6 +8,10 @@ function Get-YnabPayee {
         transfer_account_id). A payee with a transfer_account_id is the transfer payee for that account. Deleted
         payees are left out.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -50,7 +54,7 @@ function Get-YnabPayee {
             ConvertFrom-YnabData -InputObject $response.payee
         }
         else {
-            $response = Invoke-YnabRequest -Path $payeesPath
+            $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $payeesPath
             foreach ($payee in $response.payees) {
                 ConvertFrom-YnabData -InputObject $payee
             }

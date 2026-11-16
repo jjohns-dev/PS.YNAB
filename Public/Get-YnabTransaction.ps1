@@ -16,6 +16,10 @@ function Get-YnabTransaction {
         With -CategoryId, YNAB returns "hybrid" transactions: each part of a split transaction is its own row, with a
         type of transaction or subtransaction and a parent_transaction_id, instead of a subtransactions list.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -125,7 +129,7 @@ function Get-YnabTransaction {
             $query['type'] = $Type.ToLowerInvariant()
         }
 
-        $response = Invoke-YnabRequest -Path $transactionsPath -Query $query
+        $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $transactionsPath -Query $query
         foreach ($transaction in $response.transactions) {
             ConvertFrom-YnabData -InputObject $transaction
         }

@@ -10,6 +10,10 @@ function Get-YnabMonth {
         Objects keep YNAB's property names, and amounts are converted from milliunits to decimal currency units.
         Deleted months and categories are left out.
 
+        Results are cached for the PowerShell session, in memory only, when -PlanId is a plan ID rather than last-used
+        or default. Every call still sends one request, asking YNAB only for changes, so results are always current.
+        Clear-YnabCache forces a full download.
+
         Requires a session started with Connect-Ynab. Sends one request per plan.
     .PARAMETER PlanId
         Plan ID (a UUID), or last-used (the default), or default when default plan selection is enabled. Any other
@@ -76,7 +80,7 @@ function Get-YnabMonth {
             ConvertFrom-YnabData -InputObject $response.month
         }
         else {
-            $response = Invoke-YnabRequest -Path $monthsPath
+            $response = Invoke-YnabCachedRequest -PlanId $PlanId -Path $monthsPath
             foreach ($planMonth in $response.months) {
                 ConvertFrom-YnabData -InputObject $planMonth
             }

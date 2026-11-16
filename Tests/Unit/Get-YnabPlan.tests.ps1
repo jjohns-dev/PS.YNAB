@@ -40,10 +40,28 @@ Describe -Name 'Get-YnabPlan' -Fixture {
         }'
     }
     BeforeEach {
+        Clear-YnabCache
         $responseJson = $script:planJson
         Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -MockWith {
             $responseJson | ConvertFrom-Json
         }.GetNewClosure()
+    }
+    AfterAll {
+        Clear-YnabCache
+    }
+    Context -Name 'session cache' -Fixture {
+        BeforeAll {
+            $script:cachePlan = '44444444-4444-4444-8444-444444444444'
+        }
+        It -Name 'asks only for changes on a second call with a plan ID' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabPlan -PlanId $script:cachePlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 2 -Exactly -Scope It
+        }
+        It -Name 'does not cache a call with last-used' -Test {
+            1..2 | ForEach-Object -Process { Get-YnabPlan | Out-Null }
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $Query -and $Query.Contains('last_knowledge_of_server') } -Times 0 -Exactly -Scope It
+        }
     }
     Context -Name 'requests' -Fixture {
         It -Name 'sends one request for the last-used plan by default' -Test {
