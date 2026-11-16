@@ -19,15 +19,15 @@ Describe -Name 'ConvertFrom-YnabData' -Fixture {
                 $result = ConvertFrom-YnabData -InputObject $record
                 foreach ($field in $ynab_amount_fields) {
                     $result.$field | Should -BeOfType ([System.Decimal]) -Because $field
-                    $result.$field | Should -Be ([System.Decimal] 12.34) -Because $field
+                    $result.$field | Should -Be (12.34d) -Because $field
                 }
             }
         }
         It -Name 'converts negative and zero amounts' -Test {
             InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
                 $result = '{ "amount": -4500, "balance": 0 }' | ConvertFrom-Json | ConvertFrom-YnabData
-                $result.amount | Should -Be ([System.Decimal] -4.5)
-                $result.balance | Should -Be ([System.Decimal] 0)
+                $result.amount | Should -Be (-4.5d)
+                $result.balance | Should -Be (0d)
             }
         }
         It -Name 'leaves a null amount as null' -Test {
@@ -53,17 +53,17 @@ Describe -Name 'ConvertFrom-YnabData' -Fixture {
             InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
                 $json = '{ "debt_minimum_payments": { "2026-01-01": 250000, "2026-06-01": 275000 }, "debt_escrow_amounts": { "2026-01-01": 12000 }, "debt_interest_rates": { "2026-01-01": 5250 } }'
                 $result = $json | ConvertFrom-Json | ConvertFrom-YnabData
-                $result.debt_minimum_payments.'2026-01-01' | Should -Be ([System.Decimal] 250)
-                $result.debt_minimum_payments.'2026-06-01' | Should -Be ([System.Decimal] 275)
-                $result.debt_escrow_amounts.'2026-01-01' | Should -Be ([System.Decimal] 12)
-                $result.debt_interest_rates.'2026-01-01' | Should -Be ([System.Decimal] 5.25)
+                $result.debt_minimum_payments.'2026-01-01' | Should -Be (250d)
+                $result.debt_minimum_payments.'2026-06-01' | Should -Be (275d)
+                $result.debt_escrow_amounts.'2026-01-01' | Should -Be (12d)
+                $result.debt_interest_rates.'2026-01-01' | Should -Be (5.25d)
             }
         }
         It -Name 'leaves a null loan map as null' -Test {
             InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
                 $result = '{ "debt_interest_rates": null, "balance": 1000 }' | ConvertFrom-Json | ConvertFrom-YnabData
                 $result.debt_interest_rates | Should -BeNullOrEmpty
-                $result.balance | Should -Be ([System.Decimal] 1)
+                $result.balance | Should -Be (1d)
             }
         }
     }
@@ -94,11 +94,11 @@ Describe -Name 'ConvertFrom-YnabData' -Fixture {
                     }
                 }'
                 $result = $json | ConvertFrom-Json | ConvertFrom-YnabData
-                $result.plan.months[0].income | Should -Be ([System.Decimal] 500)
-                $result.plan.months[0].categories[0].budgeted | Should -Be ([System.Decimal] 40)
+                $result.plan.months[0].income | Should -Be (500d)
+                $result.plan.months[0].categories[0].budgeted | Should -Be (40d)
                 $result.plan.months[0].categories[0].PSObject.Properties.Name | Should -Not -Contain 'balance_currency'
-                $result.plan.transactions[0].amount | Should -Be ([System.Decimal] -4.5)
-                $result.plan.transactions[0].subtransactions[0].amount | Should -Be ([System.Decimal] -2)
+                $result.plan.transactions[0].amount | Should -Be (-4.5d)
+                $result.plan.transactions[0].subtransactions[0].amount | Should -Be (-2d)
             }
         }
         It -Name 'passes non-object values in lists through unchanged' -Test {
@@ -142,7 +142,7 @@ Describe -Name 'ConvertFrom-YnabData' -Fixture {
                 $items = '[ { "id": "a", "amount": 1000 }, { "id": "b", "amount": 2000 } ]' | ConvertFrom-Json
                 $result = @($items | ConvertFrom-YnabData)
                 $result | Should -HaveCount 2
-                $result[1].amount | Should -Be ([System.Decimal] 2)
+                $result[1].amount | Should -Be (2d)
                 @(ConvertFrom-YnabData -InputObject $null) | Should -HaveCount 0
             }
         }

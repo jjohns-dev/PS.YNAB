@@ -11,14 +11,14 @@ BeforeDiscovery {
 Describe -Name 'ConvertFrom-Milliunit' -Fixture {
     Context -Name 'normal usage' -Fixture {
         It -Name 'returns <Expected> for <Milliunit> milliunits' -ForEach @(
-            @{ Milliunit = 12340; Expected = 12.34 }
-            @{ Milliunit = -12340; Expected = -12.34 }
-            @{ Milliunit = 0; Expected = 0 }
-            @{ Milliunit = 1; Expected = 0.001 }
-            @{ Milliunit = -999; Expected = -0.999 }
+            @{ Milliunit = 12340; Expected = 12.34d }
+            @{ Milliunit = -12340; Expected = -12.34d }
+            @{ Milliunit = 0; Expected = 0d }
+            @{ Milliunit = 1; Expected = 0.001d }
+            @{ Milliunit = -999; Expected = -0.999d }
         ) -Test {
             InModuleScope -ModuleName $env:BHProjectName -Parameters $_ -ScriptBlock {
-                ConvertFrom-Milliunit -Milliunit $Milliunit | Should -Be ([System.Decimal] $Expected)
+                ConvertFrom-Milliunit -Milliunit $Milliunit | Should -Be $Expected
             }
         }
         It -Name 'returns a System.Decimal' -Test {
@@ -32,7 +32,7 @@ Describe -Name 'ConvertFrom-Milliunit' -Fixture {
             InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
                 $results = 1000, -2500 | ConvertFrom-Milliunit
                 $results | Should -HaveCount 2
-                $results[1] | Should -Be ([System.Decimal] -2.5)
+                $results[1] | Should -Be (-2.5d)
             }
         }
     }

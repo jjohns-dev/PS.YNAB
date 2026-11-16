@@ -52,10 +52,10 @@ Describe -Name 'Get-YnabMonth' -Fixture {
         }
         It -Name 'converts the month amounts and drops their *_currency copies' -Test {
             $october = @(Get-YnabMonth)[0]
-            $october.income | Should -Be ([System.Decimal] 5000)
-            $october.budgeted | Should -Be ([System.Decimal] 4800)
-            $october.activity | Should -Be ([System.Decimal] -4100)
-            $october.to_be_budgeted | Should -Be ([System.Decimal] 200)
+            $october.income | Should -Be (5000d)
+            $october.budgeted | Should -Be (4800d)
+            $october.activity | Should -Be (-4100d)
+            $october.to_be_budgeted | Should -Be (200d)
             $october.income_formatted | Should -Be '$5,000.00'
             $october.PSObject.Properties.Name.Where({ $_ -like '*_currency' }) | Should -BeNullOrEmpty
             $october.age_of_money | Should -Be 38
@@ -97,10 +97,10 @@ Describe -Name 'Get-YnabMonth' -Fixture {
         It -Name 'returns the month with its categories converted and deleted ones left out' -Test {
             $result = @(Get-YnabMonth -Month current)
             $result | Should -HaveCount 1
-            $result[0].income | Should -Be ([System.Decimal] 5200)
+            $result[0].income | Should -Be (5200d)
             $result[0].categories.name | Should -Be @('Food', 'Fun')
-            $result[0].categories[0].budgeted | Should -Be ([System.Decimal] 400)
-            $result[0].categories[1].balance | Should -Be ([System.Decimal] -30)
+            $result[0].categories[0].budgeted | Should -Be (400d)
+            $result[0].categories[1].balance | Should -Be (-30d)
             $result[0].categories[0].PSObject.Properties.Name | Should -Not -Contain 'budgeted_currency'
         }
     }
