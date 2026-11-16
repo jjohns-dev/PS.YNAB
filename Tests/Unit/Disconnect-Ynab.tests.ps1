@@ -40,6 +40,20 @@ Describe -Name 'Disconnect-Ynab' -Fixture {
             Disconnect-Ynab | Should -BeNullOrEmpty
         }
     }
+    Context -Name 'session cache' -Fixture {
+        It -Name 'clears the cache, with or without a session' -Test {
+            foreach ($withSession in $true, $false) {
+                if ($withSession) {
+                    Connect-Ynab -Token $script:token
+                }
+                InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                    $script:YnabCache['/plans/11111111-1111-4111-8111-111111111111/accounts?'] = @{ PlanId = '11111111-1111-4111-8111-111111111111'; ServerKnowledge = 1; Data = $null }
+                }
+                Disconnect-Ynab
+                InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Count } | Should -Be 0 -Because ('with session: {0}' -f $withSession)
+            }
+        }
+    }
     Context -Name 'no session' -Fixture {
         It -Name 'should not throw when no session exists' -Test {
             { Disconnect-Ynab } | Should -Not -Throw

@@ -39,6 +39,7 @@
 
     # Functions to export from this module. Populated per-PR as functions land.
     FunctionsToExport    = @(
+        'Clear-YnabCache'
         'Connect-Ynab'
         'Disconnect-Ynab'
         'Get-YnabAccount'

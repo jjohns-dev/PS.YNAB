@@ -12,6 +12,19 @@ $dirs = @(
 # SESSION TOKEN, SET BY Connect-Ynab AND CLEARED BY Disconnect-Ynab
 $script:YnabToken = $null
 
+# SESSION-ONLY DELTA CACHE, KEYED BY PATH AND QUERY; MEMORY ONLY, NEVER WRITTEN TO DISK (ADR-0005)
+$script:YnabCache = @{}
+
+# A PLAN ID IN YNAB'S DASHED UUID FORM, FOR RUNTIME CHECKS. ValidatePattern ATTRIBUTES REPEAT IT
+# BECAUSE ATTRIBUTE ARGUMENTS MUST BE LITERALS
+$uuidParams = @{
+    Name   = 'ynab_uuid_pattern'
+    Option = 'Constant'
+    Value  = '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+}
+New-Variable @uuidParams
+Remove-Variable -Name 'uuidParams'
+
 # AMOUNT FIELDS IN MILLIUNITS, CONVERTED TO DECIMAL BY ConvertFrom-YnabData (ADR-0004).
 # EVERY INT64 AMOUNT IN YNAB'S OPENAPI SPEC; ADD NEW ONES HERE WHEN YNAB INTRODUCES THEM
 New-Variable -Name 'ynab_amount_fields' -Option Constant -Value @(
