@@ -20,7 +20,7 @@ jobs:
       # run's JUnit artifact (pwsh-module-ci docs/test-integrity.md, ADR-0004).
       # Re-derive it in any PR that adds or removes tests: raise it when tests
       # are added, and lower it only when tests are deliberately deleted.
-      min-tests: 279 # 289 executed at 7872f7d (0 disabled); margin min(floor(289 * 0.05), 10) = 10; 289 - 10 = 279
+      min-tests: 281 # 291 executed at 613e3fc (0 disabled); margin min(floor(291 * 0.05), 10) = 10; 291 - 10 = 281
     permissions:
       contents: read
       checks: write
