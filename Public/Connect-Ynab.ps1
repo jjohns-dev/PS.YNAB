@@ -5,7 +5,8 @@ function Connect-Ynab {
     .DESCRIPTION
         Validates the token with one GET /user request and, if it is accepted, holds a read-only copy of it for the
         rest of the PowerShell session so other PS.YNAB commands can authenticate. If validation fails, the error is
-        raised and any existing session is left unchanged. A successful call replaces an existing session.
+        raised and any existing session is left unchanged. A successful call replaces an existing session and clears
+        the session cache of list results (see Clear-YnabCache).
 
         The module does not store the token anywhere: supply it from a secret store, such as
         Get-Secret from Microsoft.PowerShell.SecretManagement, or with Read-Host -AsSecureString. Never assign the
@@ -56,6 +57,9 @@ function Connect-Ynab {
         if ($previous) {
             $previous.Dispose()
         }
+
+        # A NEW TOKEN MAY BELONG TO ANOTHER YNAB USER, SO NO CACHED RESULT CARRIES OVER (ADR-0005)
+        $script:YnabCache.Clear()
         Write-Verbose -Message 'Connected to YNAB.'
     }
     Clean {

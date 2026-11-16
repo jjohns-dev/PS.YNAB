@@ -4,6 +4,12 @@
 
 Accepted — 2026-11-11
 
+Amended by [ADR-0005](0005-session-only-delta-cache.md) — 2026-11-15. One statement below is now inaccurate and is left in place:
+
+- The Decision bullet reading "A switch to include them arrives with delta requests in step 3." No switch is added in step 3; ADR-0005 defers `-IncludeDeleted`, which can be added later without breaking callers.
+
+Everything else in this record still stands.
+
 ## Context
 
 - Every read function returns objects parsed from YNAB's JSON, and the write functions planned in step 5 will return the objects YNAB sends back. Whatever shape these objects take, users and scripts will depend on it.

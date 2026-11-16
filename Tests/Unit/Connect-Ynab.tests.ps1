@@ -77,6 +77,29 @@ Describe -Name 'Connect-Ynab' -Fixture {
             Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -Times 0 -Exactly -Scope It
         }
     }
+    Context -Name 'session cache' -Fixture {
+        BeforeEach {
+            $record = $script:unauthorized
+            $rejectB = { (ConvertFrom-SecureString -SecureString $Token -AsPlainText) -eq 'second-token-b81d' }
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter $rejectB -MockWith {
+                Write-Error -ErrorRecord $record -ErrorAction Stop
+            }.GetNewClosure()
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                $script:YnabCache['/plans/11111111-1111-4111-8111-111111111111/accounts?'] = @{ PlanId = '11111111-1111-4111-8111-111111111111'; ServerKnowledge = 1; Data = $null }
+            }
+        }
+        AfterAll {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Clear() }
+        }
+        It -Name 'clears the cache when a token is accepted' -Test {
+            Connect-Ynab -Token $script:tokenA
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Count } | Should -Be 0
+        }
+        It -Name 'leaves the cache alone when the token is rejected' -Test {
+            { Connect-Ynab -Token $script:tokenB } | Should -Throw
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Count } | Should -Be 1
+        }
+    }
     Context -Name 'error handling' -Fixture {
         BeforeEach {
             $record = $script:unauthorized

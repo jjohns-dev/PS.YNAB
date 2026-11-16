@@ -88,16 +88,9 @@ function Invoke-YnabRequest {
             $restParams['Body'] = ConvertTo-Json -InputObject $Body -Depth 10 -Compress
             $restParams['ContentType'] = 'application/json'
         }
-        if ($Query) {
-            # SORTED KEYS KEEP THE URI PREDICTABLE; NULL VALUES ARE LEFT OUT
-            $queryPairs = foreach ($key in ($Query.Keys | Sort-Object)) {
-                if ($null -ne $Query[$key]) {
-                    '{0}={1}' -f [System.Uri]::EscapeDataString([System.String] $key), [System.Uri]::EscapeDataString([System.String] $Query[$key])
-                }
-            }
-            if ($queryPairs) {
-                $restParams['Uri'] = '{0}?{1}' -f $restParams['Uri'], (@($queryPairs) -join '&')
-            }
+        $queryString = ConvertTo-YnabQueryString -Query $Query
+        if ($queryString) {
+            $restParams['Uri'] = '{0}?{1}' -f $restParams['Uri'], $queryString
         }
         Write-Verbose -Message ('{0} {1}' -f $Method, $restParams['Uri'])
 

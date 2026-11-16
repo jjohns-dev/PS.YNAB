@@ -87,6 +87,7 @@ Each cached function's help gains one paragraph: results are cached for the sess
 | `PS.YNAB.psm1` | Initialize `$script:YnabCache` | 1 |
 | `Private/Invoke-YnabCachedRequest.ps1`, `Private/Merge-YnabDelta.ps1` + tests | New | 1 |
 | `Public/Clear-YnabCache.ps1` + tests, `PS.YNAB.psd1` export | New | 1 |
+| `Private/ConvertTo-YnabQueryString.ps1` + tests; `Invoke-YnabRequest` uses it | New, extracted (added while implementing): the cache key and the request URI must build the query string identically, so both call one function instead of keeping two copies | 1 |
 | `Public/Connect-Ynab.ps1`, `Public/Disconnect-Ynab.ps1` + tests | Clear the cache | 1 |
 | The six list functions + tests | Use the cache; help paragraph | 2 |
 | `docs/design.md` | Rule 6 | 2 |

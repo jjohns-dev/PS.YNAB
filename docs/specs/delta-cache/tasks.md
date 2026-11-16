@@ -10,17 +10,17 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
 
 ## PR 1: cache machinery
 
-- [ ] **1.1** Write `docs/adr/0005-session-only-delta-cache.md` with status `Proposed`, covering the design's ADR check, and add the dated amendment note to ADR-0004's status, naming its `-IncludeDeleted` sentence.
+- [x] **1.1** Write `docs/adr/0005-session-only-delta-cache.md` with status `Proposed`, covering the design's ADR check, and add the dated amendment note to ADR-0004's status, naming its `-IncludeDeleted` sentence.
   - Verify: ADR-0005 has the five sections and at least one negative consequence; ADR-0004's Context, Decision and Consequences are unchanged.
-- [ ] **1.2** Initialize `$script:YnabCache` in `PS.YNAB.psm1`.
+- [x] **1.2** Initialize `$script:YnabCache` in `PS.YNAB.psm1`.
   - Verify: the module imports, and `InModuleScope PS.YNAB { $script:YnabCache.Count }` returns 0.
-- [ ] **1.3** Add `Private/Merge-YnabDelta.ps1` and its tests, covering every case in the design's test list (AC-5).
+- [x] **1.3** Add `Private/Merge-YnabDelta.ps1` and its tests, covering every case in the design's test list (AC-5).
   - Verify: `Invoke-Pester` on `Merge-YnabDelta.tests.ps1` passes.
-- [ ] **1.4** Add `Private/Invoke-YnabCachedRequest.ps1` and its tests, covering every case in the design's test list, including the verbose message for keyword plans and the AC-6 equivalence test (AC-3 to AC-12).
+- [x] **1.4** Extract `Private/ConvertTo-YnabQueryString.ps1` from `Invoke-YnabRequest`, with tests, so the cache key and request URI share one implementation (added while implementing). Add `Private/Invoke-YnabCachedRequest.ps1` and its tests, covering every case in the design's test list, including the verbose message for keyword plans and the AC-6 equivalence test (AC-3 to AC-12).
   - Verify: `Invoke-Pester` on `Invoke-YnabCachedRequest.tests.ps1` passes. Also run the copy test against a version that returns the entry without copying, in a scratch copy of the repo, and confirm it fails.
-- [ ] **1.5** Add `Public/Clear-YnabCache.ps1` and its tests, and export it: clears everything; `-PlanId` clears only that plan; a keyword plan ID is rejected at binding; nothing is written to the output (AC-14).
+- [x] **1.5** Add `Public/Clear-YnabCache.ps1` and its tests, and export it: clears everything; `-PlanId` clears only that plan; a keyword plan ID is rejected at binding; nothing is written to the output (AC-14).
   - Verify: `Invoke-Pester` on `Clear-YnabCache.tests.ps1` passes.
-- [ ] **1.6** Clear the cache in `Connect-Ynab` after a token is accepted and in `Disconnect-Ynab`, with tests that a rejected token leaves the cache alone (AC-13).
+- [x] **1.6** Clear the cache in `Connect-Ynab` after a token is accepted and in `Disconnect-Ynab`, with tests that a rejected token leaves the cache alone (AC-13).
   - Verify: `Invoke-Pester` on `Connect-Ynab.tests.ps1` and `Disconnect-Ynab.tests.ps1` passes.
 - [ ] **1.7** Standard checks S1 to S6. Before merge, push a final commit setting ADR-0005 to `Accepted`.
   - Verify: as in S1 to S6; ADR-0005 shows `Accepted` on `main` after merge.
