@@ -51,19 +51,19 @@ Describe -Name 'Get-YnabAccount' -Fixture {
         }
         It -Name 'converts balances and drops their *_currency copies' -Test {
             $checking = @(Get-YnabAccount)[0]
-            $checking.balance | Should -Be ([System.Decimal] 1234.56)
-            $checking.cleared_balance | Should -Be ([System.Decimal] 1000)
-            $checking.uncleared_balance | Should -Be ([System.Decimal] 234.56)
+            $checking.balance | Should -Be (1234.56d)
+            $checking.cleared_balance | Should -Be (1000d)
+            $checking.uncleared_balance | Should -Be (234.56d)
             $checking.balance_formatted | Should -Be '$1,234.56'
             $checking.PSObject.Properties.Name | Should -Not -Contain 'balance_currency'
             $checking.PSObject.Properties.Name | Should -Not -Contain 'cleared_balance_currency'
         }
         It -Name 'converts the values of the loan maps' -Test {
             $mortgage = @(Get-YnabAccount)[1]
-            $mortgage.balance | Should -Be ([System.Decimal] -250000)
-            $mortgage.debt_minimum_payments.'2026-01-01' | Should -Be ([System.Decimal] 1850)
-            $mortgage.debt_escrow_amounts.'2026-01-01' | Should -Be ([System.Decimal] 425)
-            $mortgage.debt_interest_rates.'2026-01-01' | Should -Be ([System.Decimal] 6.125)
+            $mortgage.balance | Should -Be (-250000d)
+            $mortgage.debt_minimum_payments.'2026-01-01' | Should -Be (1850d)
+            $mortgage.debt_escrow_amounts.'2026-01-01' | Should -Be (425d)
+            $mortgage.debt_interest_rates.'2026-01-01' | Should -Be (6.125d)
         }
     }
     Context -Name 'getting one account' -Fixture {
@@ -75,7 +75,7 @@ Describe -Name 'Get-YnabAccount' -Fixture {
         It -Name 'returns the account with its balance converted' -Test {
             $result = @(Get-YnabAccount -AccountId $script:accountId)
             $result | Should -HaveCount 1
-            $result[0].balance | Should -Be ([System.Decimal] 1234.56)
+            $result[0].balance | Should -Be (1234.56d)
             $result[0].PSObject.Properties.Name | Should -Not -Contain 'balance_currency'
         }
         It -Name 'escapes the account ID in the path' -Test {

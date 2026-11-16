@@ -70,12 +70,12 @@ Describe -Name 'Get-YnabCategory' -Fixture {
         }
         It -Name 'converts budgeted, activity, balance and goal amounts' -Test {
             $food = @(Get-YnabCategory)[1]
-            $food.budgeted | Should -Be ([System.Decimal] 400)
-            $food.activity | Should -Be ([System.Decimal] -125.5)
-            $food.balance | Should -Be ([System.Decimal] 274.5)
-            $food.goal_target | Should -Be ([System.Decimal] 400)
-            $food.goal_overall_funded | Should -Be ([System.Decimal] 400)
-            $food.goal_under_funded | Should -Be ([System.Decimal] 0)
+            $food.budgeted | Should -Be (400d)
+            $food.activity | Should -Be (-125.5d)
+            $food.balance | Should -Be (274.5d)
+            $food.goal_target | Should -Be (400d)
+            $food.goal_overall_funded | Should -Be (400d)
+            $food.goal_under_funded | Should -Be (0d)
             $food.goal_percentage_complete | Should -Be 100
         }
         It -Name 'keeps *_formatted and drops *_currency' -Test {
@@ -93,7 +93,7 @@ Describe -Name 'Get-YnabCategory' -Fixture {
         It -Name 'returns the category with its amounts converted' -Test {
             $result = @(Get-YnabCategory -CategoryId $script:categoryId)
             $result | Should -HaveCount 1
-            $result[0].budgeted | Should -Be ([System.Decimal] 400)
+            $result[0].budgeted | Should -Be (400d)
             $result[0].PSObject.Properties.Name | Should -Not -Contain 'budgeted_currency'
         }
     }

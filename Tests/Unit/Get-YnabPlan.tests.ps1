@@ -128,15 +128,15 @@ Describe -Name 'Get-YnabPlan' -Fixture {
         }
         It -Name 'converts amounts in every nested list' -Test {
             $plan = Get-YnabPlan
-            $plan.accounts[0].balance | Should -Be ([System.Decimal] 1234.56)
-            $plan.accounts[0].cleared_balance | Should -Be ([System.Decimal] 1000)
-            $plan.categories[0].activity | Should -Be ([System.Decimal] -125.5)
-            $plan.months[0].income | Should -Be ([System.Decimal] 5000)
-            $plan.months[0].categories[0].balance | Should -Be ([System.Decimal] 274.5)
-            $plan.transactions[0].amount | Should -Be ([System.Decimal] -45)
-            $plan.subtransactions[0].amount | Should -Be ([System.Decimal] -20)
-            $plan.scheduled_transactions[0].amount | Should -Be ([System.Decimal] -150)
-            $plan.scheduled_subtransactions[0].amount | Should -Be ([System.Decimal] -50)
+            $plan.accounts[0].balance | Should -Be (1234.56d)
+            $plan.accounts[0].cleared_balance | Should -Be (1000d)
+            $plan.categories[0].activity | Should -Be (-125.5d)
+            $plan.months[0].income | Should -Be (5000d)
+            $plan.months[0].categories[0].balance | Should -Be (274.5d)
+            $plan.transactions[0].amount | Should -Be (-45d)
+            $plan.subtransactions[0].amount | Should -Be (-20d)
+            $plan.scheduled_transactions[0].amount | Should -Be (-150d)
+            $plan.scheduled_subtransactions[0].amount | Should -Be (-50d)
         }
         It -Name 'keeps *_formatted, drops *_currency, and leaves non-amount numbers alone' -Test {
             $plan = Get-YnabPlan

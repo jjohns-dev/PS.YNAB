@@ -163,10 +163,10 @@ Describe -Name 'Get-YnabTransaction' -Fixture {
         }
         It -Name 'converts amounts in transactions and their subtransactions' -Test {
             $result = @(Get-YnabTransaction)
-            $result[0].amount | Should -Be ([System.Decimal] -45)
+            $result[0].amount | Should -Be (-45d)
             $result[0].amount_formatted | Should -Be '-$45.00'
             $result[0].PSObject.Properties.Name | Should -Not -Contain 'amount_currency'
-            $result[1].subtransactions.amount | Should -Be @([System.Decimal] -40, [System.Decimal] -20)
+            $result[1].subtransactions.amount | Should -Be @(-40d, -20d)
             $result[1].subtransactions[0].PSObject.Properties.Name | Should -Not -Contain 'amount_currency'
         }
         It -Name 'leaves deleted subtransactions out' -Test {
@@ -177,13 +177,13 @@ Describe -Name 'Get-YnabTransaction' -Fixture {
             $result = @(Get-YnabTransaction -CategoryId $script:categoryId)
             $result.type | Should -Be @('subtransaction', 'transaction')
             $result[0].parent_transaction_id | Should -Be 't-2'
-            $result[0].amount | Should -Be ([System.Decimal] -40)
+            $result[0].amount | Should -Be (-40d)
             $result[0].PSObject.Properties.Name | Should -Not -Contain 'amount_currency'
         }
         It -Name 'returns one transaction for -TransactionId with its amount converted' -Test {
             $result = @(Get-YnabTransaction -TransactionId $script:transactionId)
             $result | Should -HaveCount 1
-            $result[0].amount | Should -Be ([System.Decimal] -45)
+            $result[0].amount | Should -Be (-45d)
         }
     }
     Context -Name 'pipeline input' -Fixture {
