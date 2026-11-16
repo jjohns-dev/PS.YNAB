@@ -44,5 +44,6 @@ The same checks as the [core-reads tasks](../core-reads/tasks.md#standard-checks
 
 ## After the last merge
 
-- [ ] **3.1** Tick step 3 in issue #1's plan with links to #21 and both PRs, and tick this task in the next step's first PR.
+- [x] **3.1** Tick step 3 in issue #1's plan with links to #21 and both PRs, and tick this task in the next step's first PR.
   - Verify: issue #1 shows step 3 checked.
+  - Result: done after #24 merged; #21 was closed by hand because #24 said `refs` instead of `closes`. This tick rides in the v0.2.0 version-bump PR.
