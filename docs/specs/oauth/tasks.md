@@ -10,17 +10,17 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
 
 ## PR 1: refresh machinery
 
-- [ ] **1.1** Write `docs/adr/0007-oauth-sessions-with-rotating-refresh-tokens.md` with status `Proposed`, covering the design's ADR check.
+- [x] **1.1** Write `docs/adr/0007-oauth-sessions-with-rotating-refresh-tokens.md` with status `Proposed`, covering the design's ADR check.
   - Verify: five sections, at least one negative consequence, and Context citing #26's results.
-- [ ] **1.2** Initialize `$script:YnabOAuth = $null` in `PS.YNAB.psm1`.
+- [x] **1.2** Initialize `$script:YnabOAuth = $null` in `PS.YNAB.psm1`.
   - Verify: the module imports and `InModuleScope PS.YNAB { $null -eq $script:YnabOAuth }` is `True`.
-- [ ] **1.3** Add the `_grant` parameter set to `Invoke-YnabRequest`, with tests: form POST to `https://app.ynab.com/oauth/token` with no bearer token and debug off; OAuth error bodies (`{ "error": "invalid_grant" }`) become `YnabOAuth.invalid_grant`; no form value in any stream (AC-5, AC-8).
+- [x] **1.3** Add the `_grant` parameter set to `Invoke-YnabRequest`, with tests: form POST to `https://app.ynab.com/oauth/token` with no bearer token and debug off; OAuth error bodies (`{ "error": "invalid_grant" }`) become `YnabOAuth.invalid_grant`; no form value in any stream (AC-5, AC-8).
   - Verify: `Invoke-Pester` on `Invoke-YnabRequest.tests.ps1` passes; existing tests unchanged.
-- [ ] **1.4** Add `Private/Update-YnabSessionToken.ps1` and its tests: rotation of both tokens and `ExpiresAt`; the scriptblock called once, with a separate copy, before returning; a throwing scriptblock leaves the session working and writes the non-terminating `YnabOAuthTokenRefreshCallbackFailed`; a failed refresh clears both session variables and raises `YnabOAuthRefreshFailed` (AC-13, AC-14).
+- [x] **1.4** Add `Private/Update-YnabSessionToken.ps1` and its tests: rotation of both tokens and `ExpiresAt`; the scriptblock called once, with a separate copy, before returning; a throwing scriptblock leaves the session working and writes the non-terminating `YnabOAuthTokenRefreshCallbackFailed`; a failed refresh clears both session variables and raises `YnabOAuthRefreshFailed` (AC-13, AC-14).
   - Verify: `Invoke-Pester` on `Update-YnabSessionToken.tests.ps1` passes.
-- [ ] **1.5** Make API requests in an OAuth session refresh before sending when `ExpiresAt` is within 60 seconds, and refresh then resend once on `401`, with tests: no refresh for a personal-token session or an explicit `-Token`; no second retry; the refreshed token is the one resent (AC-11, AC-12).
+- [x] **1.5** Make API requests in an OAuth session refresh before sending when `ExpiresAt` is within 60 seconds, and refresh then resend once on `401`, with tests: no refresh for a personal-token session or an explicit `-Token`; no second retry; the refreshed token is the one resent (AC-11, AC-12).
   - Verify: `Invoke-Pester` on `Invoke-YnabRequest.tests.ps1` passes.
-- [ ] **1.6** Clear and dispose the OAuth record in `Disconnect-Ynab`, and in `Connect-Ynab -Token`, with tests (AC-7, AC-9).
+- [x] **1.6** Clear and dispose the OAuth record in `Disconnect-Ynab`, and in `Connect-Ynab -Token`, with tests (AC-7, AC-9).
   - Verify: `Invoke-Pester` on `Disconnect-Ynab.tests.ps1` and `Connect-Ynab.tests.ps1` passes.
 - [ ] **1.7** Standard checks S1 to S7. Before merge, push a final commit setting ADR-0007 to `Accepted`.
   - Verify: as listed; ADR-0007 shows `Accepted` on `main` after merge.

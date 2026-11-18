@@ -54,6 +54,26 @@ Describe -Name 'Disconnect-Ynab' -Fixture {
             }
         }
     }
+    Context -Name 'OAuth session' -Fixture {
+        It -Name 'clears the OAuth record and disposes its refresh token and client secret' -Test {
+            $secrets = InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                $script:YnabToken = ConvertTo-SecureString -String 'access-1' -AsPlainText -Force
+                $script:YnabOAuth = @{
+                    ClientId       = 'client-1'
+                    ClientSecret   = ConvertTo-SecureString -String 'secret-1' -AsPlainText -Force
+                    RefreshToken   = ConvertTo-SecureString -String 'refresh-1' -AsPlainText -Force
+                    ExpiresAt      = (Get-Date).ToUniversalTime().AddHours(1)
+                    OnTokenRefresh = $null
+                }
+                $script:YnabOAuth.ClientSecret, $script:YnabOAuth.RefreshToken
+            }
+            Disconnect-Ynab
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $null -eq $script:YnabOAuth -and $null -eq $script:YnabToken } | Should -BeTrue
+            foreach ($secret in $secrets) {
+                { $secret.Copy() } | Should -Throw -ExpectedMessage '*disposed*'
+            }
+        }
+    }
     Context -Name 'no session' -Fixture {
         It -Name 'should not throw when no session exists' -Test {
             { Disconnect-Ynab } | Should -Not -Throw

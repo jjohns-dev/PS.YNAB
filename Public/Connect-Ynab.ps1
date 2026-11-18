@@ -51,18 +51,13 @@ function Connect-Ynab {
             Write-Error -ErrorRecord $PSItem -ErrorAction Stop
         }
 
-        # REPLACE THE SESSION, THEN DISPOSE THE TOKEN IT HELD
-        $previous = $script:YnabToken
+        # END ANY PREVIOUS SESSION, PERSONAL TOKEN OR OAUTH, WHICH ALSO CLEARS THE CACHE: A NEW TOKEN MAY BELONG TO
+        # ANOTHER YNAB USER (ADR-0005, ADR-0007)
+        Disconnect-Ynab
         $script:YnabToken = $candidate
-        if ($previous) {
-            $previous.Dispose()
-        }
-
-        # A NEW TOKEN MAY BELONG TO ANOTHER YNAB USER, SO NO CACHED RESULT CARRIES OVER (ADR-0005)
-        $script:YnabCache.Clear()
         Write-Verbose -Message 'Connected to YNAB.'
     }
     Clean {
-        Remove-Variable -Name 'candidate', 'previous' -Force -ErrorAction Ignore
+        Remove-Variable -Name 'candidate' -Force -ErrorAction Ignore
     }
 }
