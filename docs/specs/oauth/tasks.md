@@ -22,7 +22,7 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
   - Verify: `Invoke-Pester` on `Invoke-YnabRequest.tests.ps1` passes.
 - [x] **1.6** Clear and dispose the OAuth record in `Disconnect-Ynab`, and in `Connect-Ynab -Token`, with tests (AC-7, AC-9).
   - Verify: `Invoke-Pester` on `Disconnect-Ynab.tests.ps1` and `Connect-Ynab.tests.ps1` passes.
-- [ ] **1.7** Standard checks S1 to S7. Before merge, push a final commit setting ADR-0007 to `Accepted`.
+- [x] **1.7** Standard checks S1 to S7. Before merge, push a final commit setting ADR-0007 to `Accepted`.
   - Verify: as listed; ADR-0007 shows `Accepted` on `main` after merge.
 
 ## PR 2: connecting
