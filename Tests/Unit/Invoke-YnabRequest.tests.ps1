@@ -264,4 +264,139 @@ Describe -Name 'Invoke-YnabRequest' -Fixture {
             ($log | Out-String) | Should -Not -BeLike ('*{0}*' -f $script:sentinel)
         }
     }
+    Context -Name 'token requests' -Fixture {
+        BeforeAll {
+            $script:grantSecret = 'client-secret-sentinel-5e1a'
+            $script:tokenResponseJson = '{ "access_token": "access-2", "token_type": "bearer", "expires_in": 7200, "refresh_token": "refresh-2", "scope": "read-only" }'
+        }
+        It -Name 'posts the form to the fixed token URL without a bearer token and returns the whole response' -Test {
+            $responseJson = $script:tokenResponseJson
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith { $responseJson | ConvertFrom-Json }.GetNewClosure()
+            $result = InModuleScope -ModuleName $env:BHProjectName -Parameters @{ S = $script:grantSecret } -ScriptBlock {
+                Invoke-YnabRequest -TokenGrant @{ grant_type = 'refresh_token'; client_id = 'client-1'; client_secret = $S; refresh_token = 'refresh-1' }
+            }
+            $result.access_token | Should -Be 'access-2'
+            $result.expires_in | Should -Be 7200
+            # NOT `-not $Token`: AN UNBOUND MOCK PARAMETER RESOLVES TO THIS FILE'S $script:token, SO IT WOULD NEVER BE NULL
+            $filter = { $Uri -eq 'https://app.ynab.com/oauth/token' -and $Method -eq 'Post' -and $Authentication -ne 'Bearer' -and $Body['grant_type'] -eq 'refresh_token' -and $Body['client_secret'] -eq 'client-secret-sentinel-5e1a' }
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter $filter -Times 1 -Exactly -Scope It
+        }
+        It -Name 'raises YNAB''s OAuth error as YnabOAuth.<error>' -Test {
+            $record = & $script:newHttpError -Status 400 -Body '{"error":"invalid_grant","error_description":"The provided authorization grant is invalid"}'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $err = & $script:getRequestError -Arguments @{ TokenGrant = @{ grant_type = 'refresh_token'; refresh_token = 'r' } }
+            $err.ToString() | Should -Be 'YNAB OAuth error 400 invalid_grant: The provided authorization grant is invalid'
+            $err.FullyQualifiedErrorId | Should -BeLike 'YnabOAuth.invalid_grant,*'
+            $err.CategoryInfo.Category | Should -Be 'AuthenticationError'
+            $err.TargetObject | Should -Be 'Post /oauth/token'
+        }
+        It -Name 'raises the HTTP status when the token endpoint body is not an OAuth error' -Test {
+            $record = & $script:newHttpError -Status 502 -Body '<html>Bad Gateway</html>'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $err = & $script:getRequestError -Arguments @{ TokenGrant = @{ grant_type = 'refresh_token' } }
+            $err.ToString() | Should -Be 'YNAB OAuth token endpoint returned HTTP 502'
+            $err.FullyQualifiedErrorId | Should -BeLike 'YnabOAuth.Http502,*'
+        }
+        It -Name 'never writes a form value to the error record, verbose or debug output' -Test {
+            $record = & $script:newHttpError -Status 400 -Body '{"error":"invalid_client","error_description":"Client authentication failed"}'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $log = [System.Collections.Generic.List[System.Object]]::new()
+            $err = $null
+            try {
+                InModuleScope -ModuleName $env:BHProjectName -Parameters @{ S = $script:grantSecret } -ScriptBlock {
+                    Invoke-YnabRequest -TokenGrant @{ grant_type = 'refresh_token'; client_secret = $S; refresh_token = 'refresh-sentinel-77b0' } -Verbose -Debug 4>&1 5>&1
+                } | ForEach-Object -Process { $log.Add($PSItem) }
+            }
+            catch {
+                $err = $PSItem
+            }
+            $err | Should -Not -BeNullOrEmpty
+            $everything = ($log | Out-String) + ($err | Format-List -Property * -Force | Out-String)
+            $everything | Should -Not -BeLike ('*{0}*' -f $script:grantSecret)
+            $everything | Should -Not -BeLike '*refresh-sentinel-77b0*'
+        }
+        It -Name 'rejects -TokenGrant together with -Path' -Test {
+            {
+                InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { Invoke-YnabRequest -Path '/user' -TokenGrant @{ grant_type = 'x' } }
+            } | Should -Throw
+        }
+    }
+    Context -Name 'OAuth session refresh' -Fixture {
+        BeforeAll {
+            # PUTS AN OAUTH SESSION IN MODULE STATE; THE ACCESS TOKEN EXPIRES IN THE GIVEN NUMBER OF SECONDS
+            $script:newOAuthSession = {
+                param ([System.Int32] $ExpiresInSeconds)
+                InModuleScope -ModuleName $env:BHProjectName -Parameters @{ E = $ExpiresInSeconds } -ScriptBlock {
+                    $script:YnabToken = ConvertTo-SecureString -String 'access-1' -AsPlainText -Force
+                    $script:YnabOAuth = @{
+                        ClientId       = 'client-1'
+                        ClientSecret   = ConvertTo-SecureString -String 'client-secret-1' -AsPlainText -Force
+                        RefreshToken   = ConvertTo-SecureString -String 'refresh-1' -AsPlainText -Force
+                        ExpiresAt      = (Get-Date).ToUniversalTime().AddSeconds($E)
+                        OnTokenRefresh = $null
+                    }
+                }
+            }
+            $script:withAccess = {
+                param ($Value)
+                # A RECORDED TOKEN MAY HAVE BEEN DISPOSED BY A LATER REFRESH; A DISPOSED TOKEN IS NOT A MATCH
+                [System.Management.Automation.ScriptBlock]::Create(('try {{ $Token -and (ConvertFrom-SecureString -SecureString $Token -AsPlainText) -eq ''{0}'' }} catch [System.ObjectDisposedException] {{ $false }}' -f $Value))
+            }
+        }
+        BeforeEach {
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -MockWith {
+                '{ "access_token": "access-2", "token_type": "bearer", "expires_in": 7200, "refresh_token": "refresh-2" }' | ConvertFrom-Json
+            }
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like 'https://api.ynab.com/*' } -MockWith {
+                [PSCustomObject] @{ data = [PSCustomObject] @{ ok = $true } }
+            }
+        }
+        AfterEach {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabOAuth = $null; $script:YnabToken = $null }
+        }
+        It -Name 'refreshes before a request whose access token expires within 60 seconds, and sends the new token' -Test {
+            & $script:newOAuthSession -ExpiresInSeconds 30
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { Invoke-YnabRequest -Path '/user' } | Out-Null
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter (& $script:withAccess -Value 'access-2') -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter (& $script:withAccess -Value 'access-1') -Times 0 -Exactly -Scope It
+        }
+        It -Name 'does not refresh a token with more than 60 seconds left' -Test {
+            & $script:newOAuthSession -ExpiresInSeconds 3600
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { Invoke-YnabRequest -Path '/user' } | Out-Null
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 0 -Exactly -Scope It
+        }
+        It -Name 'refreshes once after a 401 and resends the request with the new token' -Test {
+            & $script:newOAuthSession -ExpiresInSeconds 3600
+            $record = & $script:newHttpError -Status 401 -Body '{"error":{"id":"401","name":"unauthorized","detail":"Unauthorized"}}'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter (& $script:withAccess -Value 'access-1') -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $result = InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { Invoke-YnabRequest -Path '/user' }
+            $result.ok | Should -BeTrue
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter (& $script:withAccess -Value 'access-2') -Times 1 -Exactly -Scope It
+        }
+        It -Name 'does not retry a second 401' -Test {
+            & $script:newOAuthSession -ExpiresInSeconds 3600
+            $record = & $script:newHttpError -Status 401 -Body '{"error":{"id":"401","name":"unauthorized","detail":"Unauthorized"}}'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like 'https://api.ynab.com/*' } -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $err = & $script:getRequestError -Arguments @{ Path = '/user' }
+            $err.CategoryInfo.Category | Should -Be 'AuthenticationError'
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 1 -Exactly -Scope It
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like 'https://api.ynab.com/*' } -Times 2 -Exactly -Scope It
+        }
+        It -Name 'never refreshes a personal-token session' -Test {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabToken = ConvertTo-SecureString -String 'personal' -AsPlainText -Force }
+            $record = & $script:newHttpError -Status 401 -Body '{"error":{"id":"401","name":"unauthorized","detail":"Unauthorized"}}'
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like 'https://api.ynab.com/*' } -MockWith { Write-Error -ErrorRecord $record -ErrorAction Stop }.GetNewClosure()
+            $err = & $script:getRequestError -Arguments @{ Path = '/user' }
+            $err.ToString() | Should -BeLike '*Run Connect-Ynab again.'
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 0 -Exactly -Scope It
+        }
+        It -Name 'never refreshes when an explicit -Token is passed' -Test {
+            & $script:newOAuthSession -ExpiresInSeconds 30
+            $explicit = ConvertTo-SecureString -String 'explicit' -AsPlainText -Force
+            InModuleScope -ModuleName $env:BHProjectName -Parameters @{ T = $explicit } -ScriptBlock { Invoke-YnabRequest -Path '/user' -Token $T } | Out-Null
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 0 -Exactly -Scope It
+        }
+    }
 }

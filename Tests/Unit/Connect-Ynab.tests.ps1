@@ -100,6 +100,37 @@ Describe -Name 'Connect-Ynab' -Fixture {
             InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabCache.Count } | Should -Be 1
         }
     }
+    Context -Name 'replacing an OAuth session' -Fixture {
+        BeforeEach {
+            $record = $script:unauthorized
+            $rejectB = { (ConvertFrom-SecureString -SecureString $Token -AsPlainText) -eq 'second-token-b81d' }
+            Mock -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter $rejectB -MockWith {
+                Write-Error -ErrorRecord $record -ErrorAction Stop
+            }.GetNewClosure()
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                $script:YnabToken = ConvertTo-SecureString -String 'oauth-access-1' -AsPlainText -Force
+                $script:YnabOAuth = @{
+                    ClientId       = 'client-1'
+                    ClientSecret   = ConvertTo-SecureString -String 'secret-1' -AsPlainText -Force
+                    RefreshToken   = ConvertTo-SecureString -String 'refresh-1' -AsPlainText -Force
+                    ExpiresAt      = (Get-Date).ToUniversalTime().AddHours(1)
+                    OnTokenRefresh = $null
+                }
+            }
+        }
+        AfterAll {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabOAuth = $null }
+        }
+        It -Name 'replaces an OAuth session with the personal token' -Test {
+            Connect-Ynab -Token $script:tokenA
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $null -eq $script:YnabOAuth } | Should -BeTrue
+            Should -Invoke -CommandName Invoke-RestMethod -ModuleName $env:BHProjectName -ParameterFilter { $Uri -like '*oauth/token' } -Times 0 -Exactly -Scope It
+        }
+        It -Name 'keeps the OAuth session when the personal token is rejected' -Test {
+            { Connect-Ynab -Token $script:tokenB } | Should -Throw
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { $script:YnabOAuth.ClientId } | Should -Be 'client-1'
+        }
+    }
     Context -Name 'error handling' -Fixture {
         BeforeEach {
             $record = $script:unauthorized
