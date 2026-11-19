@@ -35,9 +35,11 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
   - Verify: `Invoke-Pester` on `Connect-Ynab.tests.ps1` passes.
 - [x] **2.4** Update `docs/design.md`: rule 1 (two fixed hosts), the facts table (from #26), the OAuth section as built, and the planned-functions table; add an OAuth example to the README's Connecting section that links to the design rather than restating it (AC-16).
   - Verify: no remaining "unverified" note covered by #26, `Connect-YnabOAuth` and `Update-YnabOAuthToken` no longer listed, links resolve.
-- [ ] **2.5** **You recreate the OAuth app** with redirect URIs `http://localhost:8765/callback` and `urn:ietf:wg:oauth:2.0:oob`, store the client ID and secret, and **run the live check snippet** (provided in the PR).
+- [x] **2.5** **You recreate the OAuth app** with redirect URIs `http://localhost:8765/callback` and `urn:ietf:wg:oauth:2.0:oob`, store the client ID and secret, and **run the live check snippet** (provided in the PR).
   - Verify: every line it prints is `True` (or the expected status); results recorded here, including how YNAB shows the out-of-band code.
-- [ ] **2.6** Standard checks S1 to S7, with the PR description using `closes #26`.
+  - Result (2026-11-18, maintainer's plan, [#29](https://github.com/jjohns-dev/PS.YNAB/pull/29)): all six lines as expected. Loopback authorization read `True` with 1 token saved; a forced expiry refreshed before the request (`True`, 2); a rejected access token refreshed after the `401` and resent (`True`, 3); a resume read `True` (4); resuming from an already used refresh token raised `YnabOAuthRefreshFailed` and left no session (`YnabNotConnected`); out-of-band authorization read `True` (5).
+  - Out-of-band display: YNAB opens a page titled "OAuth Authorization Code" showing the code, with the warning "This code will never be visible again so you should copy it now!" and a Back button.
+- [x] **2.6** Standard checks S1 to S7, with the PR description using `closes #26`.
 
 ## After the last merge
 

@@ -42,6 +42,7 @@ Checked against the [API docs](https://api.ynab.com) and the [OpenAPI spec](http
 | An OAuth app accepts several redirect URIs, one per line; the registration form recommends `urn:ietf:wg:oauth:2.0:oob` or `http://localhost[:port]` for local use. A localhost redirect with PKCE and `state` worked in the spike. | 2026-11-16 |
 | Every refresh returns a new refresh token; the previous refresh token is then rejected with 400 `invalid_grant`, and reusing it does not revoke the newest one. | 2026-11-16 |
 | A refresh revokes the previous access token at once (401), not at its expiry, so only the newest token pair is ever valid. | 2026-11-16 |
+| With the `urn:ietf:wg:oauth:2.0:oob` redirect, YNAB shows the code on an "OAuth Authorization Code" page, once ("This code will never be visible again"), for the user to copy ([OAuth tasks, 2.5](specs/oauth/tasks.md#pr-2-connecting)). | 2026-11-18 |
 | Restricted mode limits an OAuth app to 25 access tokens for users other than the app's owner. | 2026-11-10 |
 | Errors return `{ "error": { "id", "name", "detail" } }`. | 2026-11-10 |
 | `plan_id` accepts `last-used`, and `default` when default plan selection is enabled. | 2026-11-10 |
@@ -49,8 +50,6 @@ Checked against the [API docs](https://api.ynab.com) and the [OpenAPI spec](http
 | Deleted items of every type "will only be included in delta requests". | 2026-11-11 |
 | Category amounts from the categories endpoints are for the current plan month in UTC. | 2026-11-11 |
 | The unit of an account's `debt_interest_rates` map is not documented. | 2026-11-11 |
-
-Still unverified: how YNAB displays the code for the out-of-band redirect.
 
 Other references: [Developer Settings](https://app.ynab.com/settings/developer) (tokens and OAuth apps); OAuth endpoints `https://app.ynab.com/oauth/authorize` and `https://app.ynab.com/oauth/token`; the [2026-04-29 API update](https://www.ynab.com/whats-new/ynabs-api-gets-even-better). Prior art: the only PowerShell Gallery module is `Posh-YNAB` 0.2.4, last published 2019-01-02 (rechecked 2026-11-10), which predates the plans rename and the 2026 write endpoints.
 
