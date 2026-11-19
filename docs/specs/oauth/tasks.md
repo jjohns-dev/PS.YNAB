@@ -43,5 +43,5 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
 
 ## After the last merge
 
-- [ ] **3.1** Tick step 4 in issue #1 with links to #26 and both PRs, and tick this task in the next PR that touches the repo.
+- [x] **3.1** Tick step 4 in issue #1 with links to #26 and both PRs, and tick this task in the next PR that touches the repo.
   - Verify: issue #1 shows step 4 checked.
