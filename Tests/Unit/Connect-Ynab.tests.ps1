@@ -194,3 +194,244 @@ Describe -Name 'Connect-Ynab' -Fixture {
         }
     }
 }
+
+Describe -Name 'Connect-Ynab with OAuth' -Fixture {
+    BeforeAll {
+        $script:clientId = 'client-id-1'
+        $script:secretSentinel = 'client-secret-sentinel-9a41'
+        $script:codeSentinel = 'auth-code-sentinel-0be6'
+        $script:refreshSentinel = 'refresh-sentinel-77d3'
+        $script:clientSecret = ConvertTo-SecureString -String $script:secretSentinel -AsPlainText -Force
+        $script:savedRefresh = ConvertTo-SecureString -String $script:refreshSentinel -AsPlainText -Force
+        $script:app = @{ ClientId = $script:clientId; ClientSecret = $script:clientSecret }
+        $script:realReceive = InModuleScope -ModuleName $env:BHProjectName -ScriptBlock { ${function:Receive-YnabAuthorizationCode} }
+        $script:plain = { param ($Secure) ConvertFrom-SecureString -SecureString $Secure -AsPlainText }
+        $script:session = {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                @{ Token = $script:YnabToken; OAuth = $script:YnabOAuth; CacheCount = $script:YnabCache.Count }
+            }
+        }
+    }
+    BeforeEach {
+        $script:seenAuthorizeUri = $null
+        $script:seenGrant = $null
+        Mock -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -MockWith {
+            $script:seenAuthorizeUri = $AuthorizeUri
+            ConvertTo-SecureString -String 'auth-code-sentinel-0be6' -AsPlainText -Force
+        }
+        Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $TokenGrant } -MockWith {
+            $script:seenGrant = @{} + $TokenGrant
+            [PSCustomObject] @{ access_token = 'access-new'; token_type = 'bearer'; expires_in = 7200; refresh_token = 'refresh-new' }
+        }
+        Disconnect-Ynab
+    }
+    AfterAll {
+        Disconnect-Ynab
+    }
+    Context -Name 'parameter sets' -Fixture {
+        It -Name 'binds <Case> to <Set>' -ForEach @(
+            @{ Case = '-Token'; Set = '_token'; Extra = @{ Token = [System.Security.SecureString]::new() }; WithApp = $false }
+            @{ Case = 'client credentials'; Set = '_authorize'; Extra = @{}; WithApp = $true }
+            @{ Case = '-RedirectUri'; Set = '_authorize'; Extra = @{ RedirectUri = 'http://127.0.0.1:9000/cb' }; WithApp = $true }
+            @{ Case = '-OutOfBand'; Set = '_authorizeOutOfBand'; Extra = @{ OutOfBand = $true }; WithApp = $true }
+            @{ Case = '-RefreshToken'; Set = '_resume'; Extra = @{ RefreshToken = [System.Security.SecureString]::new() }; WithApp = $true }
+        ) -Test {
+            $arguments = @{} + $Extra
+            if ($WithApp) {
+                $arguments += $script:app
+            }
+            $command = Get-Command -Name Connect-Ynab
+            $names = @($arguments.Keys)
+            $matched = @($command.ParameterSets | Where-Object {
+                    $setNames = $PSItem.Parameters.Name
+                    $mandatory = @($PSItem.Parameters | Where-Object IsMandatory | ForEach-Object Name)
+                    @($names | Where-Object { $PSItem -notin $setNames }).Count -eq 0 -and
+                    @($mandatory | Where-Object { $PSItem -notin $names }).Count -eq 0
+                })
+            $matched.Name | Should -Be $Set
+        }
+        It -Name 'rejects <Case>' -ForEach @(
+            @{ Case = '-OutOfBand with -RedirectUri'; Extra = @{ OutOfBand = $true; RedirectUri = 'http://localhost:1/cb' } }
+            @{ Case = '-RefreshToken with -OutOfBand'; Extra = @{ OutOfBand = $true; RefreshToken = [System.Security.SecureString]::new() } }
+            @{ Case = '-Token with client credentials'; Extra = @{ Token = [System.Security.SecureString]::new() } }
+        ) -Test {
+            $arguments = $script:app + $Extra
+            { Connect-Ynab @arguments } | Should -Throw -ErrorId 'AmbiguousParameterSet,Connect-Ynab'
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 0 -Exactly -Scope It
+        }
+        It -Name 'rejects a plain string client secret' -Test {
+            { Connect-Ynab -ClientId 'c' -ClientSecret 'plain-secret' } | Should -Throw -ExpectedMessage '*SecureString*'
+        }
+    }
+    Context -Name 'authorizing in the browser' -Fixture {
+        It -Name 'waits on the default redirect URI with the state it sent, for 300 seconds' -Test {
+            Connect-Ynab @script:app -OnTokenRefresh {}
+            # A SCRIPT VARIABLE, NOT A CLOSURE: A CLOSURE FILTER CANNOT SEE THE BOUND PARAMETERS
+            $script:sentState = ([System.Uri] $script:seenAuthorizeUri).Query -replace '^.*[?&]state=([^&]+).*$', '$1'
+            $filter = { $RedirectUri -eq 'http://localhost:8765/callback' -and $State -eq $script:sentState -and $TimeoutSeconds -eq 300 }
+            Should -Invoke -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -ParameterFilter $filter -Times 1 -Exactly -Scope It
+            $script:seenAuthorizeUri | Should -BeLike '*redirect_uri=http%3A%2F%2Flocalhost%3A8765%2Fcallback*'
+        }
+        It -Name 'passes -RedirectUri and -TimeoutSeconds through' -Test {
+            Connect-Ynab @script:app -RedirectUri 'http://127.0.0.1:9000/cb' -TimeoutSeconds 30 -OnTokenRefresh {}
+            $filter = { $RedirectUri -eq 'http://127.0.0.1:9000/cb' -and $TimeoutSeconds -eq 30 }
+            Should -Invoke -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -ParameterFilter $filter -Times 1 -Exactly -Scope It
+            $script:seenGrant['redirect_uri'] | Should -BeExactly 'http://127.0.0.1:9000/cb'
+        }
+        It -Name 'exchanges the code with the client credentials, redirect URI and the verifier of the challenge sent' -Test {
+            Connect-Ynab @script:app -OnTokenRefresh {}
+            $script:seenGrant['grant_type'] | Should -BeExactly 'authorization_code'
+            $script:seenGrant['code'] | Should -BeExactly $script:codeSentinel
+            $script:seenGrant['client_id'] | Should -BeExactly $script:clientId
+            $script:seenGrant['client_secret'] | Should -BeExactly $script:secretSentinel
+            $script:seenGrant['redirect_uri'] | Should -BeExactly 'http://localhost:8765/callback'
+            $hash = [System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::ASCII.GetBytes($script:seenGrant['code_verifier']))
+            $challenge = [System.Convert]::ToBase64String($hash).TrimEnd('=').Replace('+', '-').Replace('/', '_')
+            $script:seenAuthorizeUri | Should -BeLike ('*code_challenge={0}&*' -f $challenge)
+        }
+        It -Name 'uses the out-of-band redirect URI and prompt with -OutOfBand' -Test {
+            Connect-Ynab @script:app -OutOfBand -OnTokenRefresh {}
+            Should -Invoke -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -ParameterFilter { $OutOfBand } -Times 1 -Exactly -Scope It
+            $script:seenAuthorizeUri | Should -BeLike '*redirect_uri=urn%3Aietf%3Awg%3Aoauth%3A2.0%3Aoob*'
+            $script:seenGrant['redirect_uri'] | Should -BeExactly 'urn:ietf:wg:oauth:2.0:oob'
+        }
+        It -Name 'reads the out-of-band code from a secure prompt' -Test {
+            # RUN THE REAL FUNCTION, CAPTURED BEFORE MOCKING, SO ITS Read-Host AND Start-Process HIT THE MOCKS BELOW
+            Mock -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -MockWith {
+                & $script:realReceive -AuthorizeUri $AuthorizeUri -OutOfBand
+            }
+            Mock -CommandName Start-Process -ModuleName $env:BHProjectName
+            Mock -CommandName Read-Host -ModuleName $env:BHProjectName -MockWith {
+                ConvertTo-SecureString -String 'typed-code-31' -AsPlainText -Force
+            }
+            Connect-Ynab @script:app -OutOfBand -OnTokenRefresh {} 6> $null
+            Should -Invoke -CommandName Read-Host -ModuleName $env:BHProjectName -ParameterFilter { $AsSecureString } -Times 1 -Exactly -Scope It
+            $script:seenGrant['code'] | Should -BeExactly 'typed-code-31'
+        }
+    }
+    Context -Name 'resuming' -Fixture {
+        It -Name 'redeems the refresh token at once, without a browser' -Test {
+            Connect-Ynab @script:app -RefreshToken $script:savedRefresh -OnTokenRefresh {}
+            Should -Invoke -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -Times 0 -Exactly -Scope It
+            $script:seenGrant['grant_type'] | Should -BeExactly 'refresh_token'
+            $script:seenGrant['refresh_token'] | Should -BeExactly $script:refreshSentinel
+            $script:seenGrant['client_secret'] | Should -BeExactly $script:secretSentinel
+        }
+        It -Name 'leaves the caller''s SecureStrings usable after Disconnect-Ynab' -Test {
+            Connect-Ynab @script:app -RefreshToken $script:savedRefresh -OnTokenRefresh {}
+            Disconnect-Ynab
+            & $script:plain $script:savedRefresh | Should -BeExactly $script:refreshSentinel
+            & $script:plain $script:clientSecret | Should -BeExactly $script:secretSentinel
+        }
+        It -Name 'raises YnabOAuthRefreshFailed saying to authorize again, and leaves no session, when the token is rejected' -Test {
+            Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $TokenGrant } -MockWith {
+                Write-Error -Message 'YNAB OAuth error 400 invalid_grant: revoked' -ErrorId 'YnabOAuth.invalid_grant' -ErrorAction Stop
+            }
+            $err = $null
+            try {
+                Connect-Ynab @script:app -RefreshToken $script:savedRefresh -OnTokenRefresh {}
+            }
+            catch {
+                $err = $PSItem
+            }
+            $err.FullyQualifiedErrorId | Should -BeLike 'YnabOAuthRefreshFailed,*'
+            $err.ToString() | Should -BeLike '*no longer valid*authorize again*'
+            $state = & $script:session
+            $state.Token | Should -BeNullOrEmpty
+            $state.OAuth | Should -BeNullOrEmpty
+        }
+    }
+    Context -Name 'the session' -Fixture {
+        It -Name 'holds the access token, refresh token and expiry from the <Set> response' -ForEach @(
+            @{ Set = 'authorize'; Extra = @{} }
+            @{ Set = 'resume'; Extra = @{ RefreshToken = (ConvertTo-SecureString -String 'r' -AsPlainText -Force) } }
+        ) -Test {
+            Connect-Ynab @script:app @Extra -OnTokenRefresh {}
+            $state = & $script:session
+            & $script:plain $state.Token | Should -BeExactly 'access-new'
+            & $script:plain $state.OAuth.RefreshToken | Should -BeExactly 'refresh-new'
+            $state.OAuth.ClientId | Should -BeExactly $script:clientId
+            $state.OAuth.ExpiresAt | Should -BeGreaterThan (Get-Date).ToUniversalTime().AddSeconds(7100)
+        }
+        It -Name 'hands the first refresh token to -OnTokenRefresh when <Set>' -ForEach @(
+            @{ Set = 'authorizing'; Extra = @{} }
+            @{ Set = 'resuming'; Extra = @{ RefreshToken = (ConvertTo-SecureString -String 'r' -AsPlainText -Force) } }
+        ) -Test {
+            $received = [System.Collections.Generic.List[System.Object]]::new()
+            Connect-Ynab @script:app @Extra -OnTokenRefresh { param ($Refresh) $received.Add($Refresh) }.GetNewClosure()
+            $received.Count | Should -Be 1
+            & $script:plain $received[0].RefreshToken | Should -BeExactly 'refresh-new'
+        }
+        It -Name 'warns that tokens are not saved without -OnTokenRefresh' -Test {
+            Connect-Ynab @script:app -WarningVariable warnings -WarningAction SilentlyContinue
+            @($warnings).Count | Should -Be 1
+            [System.String] $warnings[0] | Should -BeLike '*-OnTokenRefresh*'
+        }
+        It -Name 'does not warn with -OnTokenRefresh' -Test {
+            Connect-Ynab @script:app -OnTokenRefresh {} -WarningVariable warnings -WarningAction SilentlyContinue
+            @($warnings).Count | Should -Be 0
+        }
+        It -Name 'replaces a personal-token session and clears the cache' -Test {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                $script:YnabToken = ConvertTo-SecureString -String 'personal-1' -AsPlainText -Force
+                $script:YnabCache['/plans/x/accounts?'] = @{ ServerKnowledge = 1 }
+            }
+            Connect-Ynab @script:app -OnTokenRefresh {}
+            $state = & $script:session
+            & $script:plain $state.Token | Should -BeExactly 'access-new'
+            $state.CacheCount | Should -Be 0
+        }
+        It -Name 'keeps the existing session when authorization fails before the token request' -Test {
+            InModuleScope -ModuleName $env:BHProjectName -ScriptBlock {
+                $script:YnabToken = ConvertTo-SecureString -String 'personal-1' -AsPlainText -Force
+                $script:YnabCache['/plans/x/accounts?'] = @{ ServerKnowledge = 1 }
+            }
+            Mock -CommandName Receive-YnabAuthorizationCode -ModuleName $env:BHProjectName -MockWith {
+                Write-Error -Message 'No authorization arrived' -ErrorId 'YnabOAuthTimeout' -ErrorAction Stop
+            }
+            $err = $null
+            try {
+                Connect-Ynab @script:app -OnTokenRefresh {}
+            }
+            catch {
+                $err = $PSItem
+            }
+            $err.FullyQualifiedErrorId | Should -BeLike 'YnabOAuthTimeout*'
+            Should -Invoke -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -Times 0 -Exactly -Scope It
+            $state = & $script:session
+            & $script:plain $state.Token | Should -BeExactly 'personal-1'
+            $state.CacheCount | Should -Be 1
+        }
+    }
+    Context -Name 'secret protection' -Fixture {
+        It -Name 'never writes the client secret, code or tokens to any stream when <Case>' -ForEach @(
+            @{ Case = 'authorizing'; Extra = @{}; Fail = $false }
+            @{ Case = 'resuming'; Extra = @{ RefreshToken = 'saved' }; Fail = $false }
+            @{ Case = 'the exchange fails'; Extra = @{}; Fail = $true }
+            @{ Case = 'the resume fails'; Extra = @{ RefreshToken = 'saved' }; Fail = $true }
+        ) -Test {
+            $arguments = $script:app + @{ OnTokenRefresh = { param ($Refresh) Write-Verbose -Message ('saved; expires {0:o}' -f $Refresh.AccessTokenExpiresAt) } }
+            if ($Extra.ContainsKey('RefreshToken')) {
+                $arguments['RefreshToken'] = $script:savedRefresh
+            }
+            if ($Fail) {
+                Mock -CommandName Invoke-YnabRequest -ModuleName $env:BHProjectName -ParameterFilter { $TokenGrant } -MockWith {
+                    Write-Error -Message 'YNAB OAuth error 400 invalid_grant: rejected' -ErrorId 'YnabOAuth.invalid_grant' -ErrorAction Stop
+                }
+            }
+            $log = [System.Collections.Generic.List[System.Object]]::new()
+            $err = $null
+            try {
+                Connect-Ynab @arguments -Verbose -Debug *>&1 | ForEach-Object -Process { $log.Add($PSItem) }
+            }
+            catch {
+                $err = $PSItem
+            }
+            $log.Count | Should -BeGreaterThan 0
+            $text = ($log | Out-String) + ($err | Format-List -Property * -Force | Out-String)
+            foreach ($sentinel in $script:secretSentinel, $script:codeSentinel, $script:refreshSentinel, 'access-new', 'refresh-new') {
+                $text | Should -Not -BeLike ('*{0}*' -f $sentinel)
+            }
+        }
+    }
+}
