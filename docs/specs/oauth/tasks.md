@@ -27,17 +27,19 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
 
 ## PR 2: connecting
 
-- [ ] **2.1** Add `Private/New-YnabOAuthRequest.ps1` and tests: 43-character verifier, `S256` challenge matching it, random `state`, and an authorize URL with `response_type=code`, `scope=read-only`, the escaped redirect URI, `state`, `code_challenge` and `code_challenge_method=S256` (AC-1).
+- [x] **2.1** Add `Private/New-YnabOAuthRequest.ps1` and tests: 43-character verifier, `S256` challenge matching it, random `state`, and an authorize URL with `response_type=code`, `scope=read-only`, the escaped redirect URI, `state`, `code_challenge` and `code_challenge_method=S256` (AC-1).
   - Verify: `Invoke-Pester` on `New-YnabOAuthRequest.tests.ps1` passes; the challenge is checked against an independent SHA-256 of the verifier.
-- [ ] **2.2** Add `Private/Receive-YnabAuthorizationCode.ps1` and tests, using a real listener on a port chosen at run time and a thread job as the browser, with `Start-Process` always mocked: code received; wrong path ignored; `error` and `state` mismatch rejected; timeout raises `YnabOAuthTimeout`; a port in use raises `YnabOAuthListenerFailed` before `Start-Process` is called; a non-loopback host is rejected; the listener is stopped on every path (AC-2, AC-3, AC-4, AC-17).
+- [x] **2.2** Add `Private/Receive-YnabAuthorizationCode.ps1` and tests, using a real listener on a port chosen at run time and a thread job as the browser, with `Start-Process` always mocked: code received; wrong path ignored; `error` and `state` mismatch rejected; timeout raises `YnabOAuthTimeout`; a port in use raises `YnabOAuthListenerFailed` before `Start-Process` is called; a non-loopback host is rejected; the listener is stopped on every path (AC-2, AC-3, AC-4, AC-17).
   - Verify: `Invoke-Pester` on `Receive-YnabAuthorizationCode.tests.ps1` passes locally and in CI (Linux).
-- [ ] **2.3** Add the `_authorize` and `_resume` sets to `Connect-Ynab`, with tests: binding for each set; authorize exchanges the code with the verifier; out-of-band uses the `oob` redirect and a mocked `Read-Host`; resume redeems at once; the scriptblock receives the first refresh token; without a scriptblock, a warning; the previous session and the cache are cleared (AC-1 to AC-7, AC-13).
+- [x] **2.3** Add the `_authorize` and `_resume` sets to `Connect-Ynab`, with tests: binding for each set; authorize exchanges the code with the verifier; out-of-band uses the `oob` redirect and a mocked `Read-Host`; resume redeems at once; the scriptblock receives the first refresh token; without a scriptblock, a warning; the previous session and the cache are cleared (AC-1 to AC-7, AC-13).
   - Verify: `Invoke-Pester` on `Connect-Ynab.tests.ps1` passes.
-- [ ] **2.4** Update `docs/design.md`: rule 1 (two fixed hosts), the facts table (from #26), the OAuth section as built, and the planned-functions table; add an OAuth example to the README's Connecting section that links to the design rather than restating it (AC-16).
+- [x] **2.4** Update `docs/design.md`: rule 1 (two fixed hosts), the facts table (from #26), the OAuth section as built, and the planned-functions table; add an OAuth example to the README's Connecting section that links to the design rather than restating it (AC-16).
   - Verify: no remaining "unverified" note covered by #26, `Connect-YnabOAuth` and `Update-YnabOAuthToken` no longer listed, links resolve.
-- [ ] **2.5** **You recreate the OAuth app** with redirect URIs `http://localhost:8765/callback` and `urn:ietf:wg:oauth:2.0:oob`, store the client ID and secret, and **run the live check snippet** (provided in the PR).
+- [x] **2.5** **You recreate the OAuth app** with redirect URIs `http://localhost:8765/callback` and `urn:ietf:wg:oauth:2.0:oob`, store the client ID and secret, and **run the live check snippet** (provided in the PR).
   - Verify: every line it prints is `True` (or the expected status); results recorded here, including how YNAB shows the out-of-band code.
-- [ ] **2.6** Standard checks S1 to S7, with the PR description using `closes #26`.
+  - Result (2026-11-18, maintainer's plan, [#29](https://github.com/jjohns-dev/PS.YNAB/pull/29)): all six lines as expected. Loopback authorization read `True` with 1 token saved; a forced expiry refreshed before the request (`True`, 2); a rejected access token refreshed after the `401` and resent (`True`, 3); a resume read `True` (4); resuming from an already used refresh token raised `YnabOAuthRefreshFailed` and left no session (`YnabNotConnected`); out-of-band authorization read `True` (5).
+  - Out-of-band display: YNAB opens a page titled "OAuth Authorization Code" showing the code, with the warning "This code will never be visible again so you should copy it now!" and a Back button.
+- [x] **2.6** Standard checks S1 to S7, with the PR description using `closes #26`.
 
 ## After the last merge
 

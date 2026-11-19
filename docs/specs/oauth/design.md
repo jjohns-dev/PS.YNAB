@@ -30,13 +30,15 @@ flowchart TD
 - `$script:YnabToken` keeps its meaning: the `SecureString` sent as the bearer token. In an OAuth session it holds the current access token.
 - `$script:YnabOAuth` is `$null` for a personal-token session, otherwise `@{ ClientId; ClientSecret; RefreshToken; ExpiresAt; OnTokenRefresh }`, with secrets as read-only `SecureString` copies and `ExpiresAt` in UTC from `expires_in`.
 - Any successful connect replaces both and clears the cache (AC-7). `Disconnect-Ynab` disposes and clears both (AC-9).
+- A personal-token connect that fails, and an OAuth connect that fails before its token request (browser timeout, `error` or `state` mismatch), leave the existing session unchanged. An OAuth token request runs on the new session record, so the previous session ends when it starts, and a failed request leaves no session (added in PR 2: `Update-YnabSessionToken` ends the session it refreshes on failure).
 
 ### `Connect-Ynab` parameter sets
 
 | Set | Parameters | Effect |
 |---|---|---|
 | `_token` (default, unchanged) | `-Token` | Personal access token, as today; also clears any OAuth record |
-| `_authorize` | `-ClientId` `[System.String]`, `-ClientSecret` `[SecureString]`, `-RedirectUri` (default `http://localhost:8765/callback`), `-OutOfBand`, `-TimeoutSeconds` (default 300), `-OnTokenRefresh` | Browser authorization, then the code exchange |
+| `_authorize` | `-ClientId` `[System.String]`, `-ClientSecret` `[SecureString]`, `-RedirectUri` (default `http://localhost:8765/callback`), `-TimeoutSeconds` (default 300), `-OnTokenRefresh` | Browser authorization, then the code exchange |
+| `_authorizeOutOfBand` | `-ClientId`, `-ClientSecret`, `-OutOfBand` (mandatory), `-OnTokenRefresh` | As `_authorize`, with the code typed at a prompt. A set of its own (added in PR 2) so PowerShell rejects `-OutOfBand` with `-RedirectUri` or `-TimeoutSeconds` |
 | `_resume` | `-ClientId`, `-ClientSecret`, `-RefreshToken` `[SecureString]`, `-OnTokenRefresh` | Redeems the refresh token at once (AC-6) |
 
 - `-OnTokenRefresh` is optional. It is called after the initial exchange and after every refresh, including the one a resume performs. Without it, the session works for this PowerShell process only, and a warning says the refresh token is not being saved.
