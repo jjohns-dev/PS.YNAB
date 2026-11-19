@@ -1,6 +1,6 @@
 # OAuth: requirements
 
-Step 4 of the plan in [#1](https://github.com/jjohns-dev/PS.YNAB/issues/1); tracked in [#26](https://github.com/jjohns-dev/PS.YNAB/issues/26). Constrained by [ADR-0003](../../adr/0003-session-token-auth-and-default-plan.md) (session auth, no secret store, refreshed tokens handed back to the caller) and [ADR-0005](../../adr/0005-session-only-delta-cache.md) (cache cleared on connect and disconnect). The current OAuth plan is in [docs/design.md](../../design.md#oauth-app-read-only-planned-step-4).
+Step 4 of the plan in [#1](https://github.com/jjohns-dev/PS.YNAB/issues/1); tracked in [#26](https://github.com/jjohns-dev/PS.YNAB/issues/26). Constrained by [ADR-0003](../../adr/0003-session-token-auth-and-default-plan.md) (session auth, no secret store, refreshed tokens handed back to the caller) and [ADR-0005](../../adr/0005-session-only-delta-cache.md) (cache cleared on connect and disconnect). The OAuth section of [docs/design.md](../../design.md#oauth-app-read-only-shipped) describes it as built.
 
 ## Problem / motivation
 

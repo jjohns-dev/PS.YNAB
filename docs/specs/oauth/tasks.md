@@ -33,7 +33,7 @@ S1 to S5 as in the [core-reads tasks](../core-reads/tasks.md#standard-checks-bef
   - Verify: `Invoke-Pester` on `Receive-YnabAuthorizationCode.tests.ps1` passes locally and in CI (Linux).
 - [x] **2.3** Add the `_authorize` and `_resume` sets to `Connect-Ynab`, with tests: binding for each set; authorize exchanges the code with the verifier; out-of-band uses the `oob` redirect and a mocked `Read-Host`; resume redeems at once; the scriptblock receives the first refresh token; without a scriptblock, a warning; the previous session and the cache are cleared (AC-1 to AC-7, AC-13).
   - Verify: `Invoke-Pester` on `Connect-Ynab.tests.ps1` passes.
-- [ ] **2.4** Update `docs/design.md`: rule 1 (two fixed hosts), the facts table (from #26), the OAuth section as built, and the planned-functions table; add an OAuth example to the README's Connecting section that links to the design rather than restating it (AC-16).
+- [x] **2.4** Update `docs/design.md`: rule 1 (two fixed hosts), the facts table (from #26), the OAuth section as built, and the planned-functions table; add an OAuth example to the README's Connecting section that links to the design rather than restating it (AC-16).
   - Verify: no remaining "unverified" note covered by #26, `Connect-YnabOAuth` and `Update-YnabOAuthToken` no longer listed, links resolve.
 - [ ] **2.5** **You recreate the OAuth app** with redirect URIs `http://localhost:8765/callback` and `urn:ietf:wg:oauth:2.0:oob`, store the client ID and secret, and **run the live check snippet** (provided in the PR).
   - Verify: every line it prints is `True` (or the expected status); results recorded here, including how YNAB shows the out-of-band code.

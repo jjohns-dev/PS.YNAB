@@ -42,6 +42,25 @@ Connect-Ynab -Token (Read-Host -Prompt 'YNAB token' -AsSecureString)
 
 Never assign the token to a variable as a plain string (`$token = '...'`): PSReadLine saves that line to its history file. `Disconnect-Ynab` clears the token from the session.
 
+For an unattended job, connect with a read-only [OAuth application](docs/design.md#oauth-app-read-only-shipped) instead. Authorize once in the browser, saving each new refresh token as YNAB issues it, then resume from the saved token in later runs:
+
+```powershell
+$app = @{
+    ClientId     = Get-Secret -Name YnabOAuthClientId -AsPlainText
+    ClientSecret = Get-Secret -Name YnabOAuthClientSecret
+}
+$save = { param ($Refresh) Set-Secret -Name YnabRefreshToken -Secret $Refresh.RefreshToken }
+
+# ONCE, INTERACTIVELY
+Connect-Ynab @app -OnTokenRefresh $save
+
+# EACH LATER RUN
+$ErrorActionPreference = 'Stop'
+Connect-Ynab @app -RefreshToken (Get-Secret -Name YnabRefreshToken) -OnTokenRefresh $save
+```
+
+`Get-Help Connect-Ynab -Full` covers out-of-band authorization, other redirect URIs and what happens when saving fails.
+
 Commands that take a `-PlanId` default to `last-used`. To work with a specific plan, set a default in your profile:
 
 ```powershell
