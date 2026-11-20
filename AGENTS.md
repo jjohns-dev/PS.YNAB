@@ -21,6 +21,7 @@ PS.YNAB/
   Public/                one .ps1 per exported function, Verb-YnabNoun.ps1
   Private/               internal helpers, NOT exported
   Tests/Unit/            Pester tests, <Function>.tests.ps1
+  scripts/               example scripts; not packaged, but code scanning analyzes them
   docs/adr/              architectural decision records
   PS.YNAB.psd1           module manifest (authoritative export list)
   PS.YNAB.psm1           module loader (dot-sources Public/ + Private/)
